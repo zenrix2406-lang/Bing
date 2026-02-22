@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Register — PyHost{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-sm-8 col-md-6 col-lg-5 col-xl-4">
+    <div class="card bg-dark border-secondary shadow">
+      <div class="card-body p-4">
+        <h3 class="card-title fw-bold mb-1 text-center">
+          <i class="bi bi-person-plus-fill text-primary me-2"></i>Create Account
+        </h3>
+        <p class="text-secondary text-center small mb-4">Join PyHost — it's free</p>
+
+        <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+          <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" id="username" name="username"
+                   class="form-control bg-secondary border-0 text-white"
+                   placeholder="coolcoder42"
+                   value="{{ username }}" required autofocus minlength="3" />
+            <div class="form-text text-secondary">At least 3 characters.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" id="email" name="email"
+                   class="form-control bg-secondary border-0 text-white"
+                   placeholder="you@example.com"
+                   value="{{ email }}" required />
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-group">
+              <input type="password" id="password" name="password"
+                     class="form-control bg-secondary border-0 text-white"
+                     placeholder="••••••••" required minlength="6" />
+              <button class="btn btn-secondary" type="button" id="togglePw"
+                      title="Show/hide password">
+                <i class="bi bi-eye" id="eyeIcon"></i>
+              </button>
+            </div>
+            <div class="form-text text-secondary">At least 6 characters.</div>
+          </div>
+
+          <div class="mb-4">
+            <label for="confirm_password" class="form-label">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password"
+                   class="form-control bg-secondary border-0 text-white"
+                   placeholder="••••••••" required />
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+            <i class="bi bi-person-plus-fill me-1"></i>Create Account
+          </button>
+        </form>
+
+        <hr class="border-secondary my-3" />
+        <p class="text-center text-secondary small mb-0">
+          Already have an account?
+          <a href="{{ url_for('auth.login') }}" class="text-primary">Log in here</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.getElementById('togglePw').addEventListener('click', function () {
+    const pw = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    if (pw.type === 'password') {
+      pw.type = 'text';
+      icon.className = 'bi bi-eye-slash';
+    } else {
+      pw.type = 'password';
+      icon.className = 'bi bi-eye';
+    }
+  });
+</script>
+{% endblock %}

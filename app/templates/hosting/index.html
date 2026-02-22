@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}File Hosting — PyHost{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-folder-fill me-2 text-warning"></i>File Hosting
+  </h4>
+  <span class="text-secondary small">{{ files | length }} file{{ 's' if files | length != 1 else '' }}</span>
+</div>
+
+<!-- Upload card -->
+<div class="card bg-dark border-secondary mb-4">
+  <div class="card-body">
+    <h6 class="card-title fw-semibold mb-3">
+      <i class="bi bi-cloud-upload me-1 text-primary"></i>Upload a File
+    </h6>
+    <form method="POST" action="{{ url_for('hosting.upload') }}" enctype="multipart/form-data">
+      <div class="upload-drop-zone mb-3" id="dropZone">
+        <i class="bi bi-cloud-upload-fill fs-2 text-secondary mb-2 d-block"></i>
+        <p class="mb-2 text-secondary">Drag &amp; drop a file here, or click to browse</p>
+        <input type="file" id="fileInput" name="file" class="d-none" required />
+        <button type="button" class="btn btn-outline-primary btn-sm" id="browseBtn">
+          <i class="bi bi-folder2-open me-1"></i>Browse
+        </button>
+        <p class="mt-2 mb-0 text-secondary small" id="selectedFileName">No file chosen</p>
+      </div>
+      <div class="text-end">
+        <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
+          <i class="bi bi-upload me-1"></i>Upload
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Files table -->
+{% if files %}
+<div class="card bg-dark border-secondary">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover align-middle mb-0">
+        <thead class="border-secondary">
+          <tr>
+            <th class="ps-3">File Name</th>
+            <th>Size</th>
+            <th>Type</th>
+            <th>Uploaded</th>
+            <th class="text-end pe-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in files %}
+          <tr>
+            <td class="ps-3">
+              <i class="bi bi-file-earmark me-2 text-secondary"></i>
+              <span class="fw-medium">{{ f.original_name }}</span>
+            </td>
+            <td class="text-secondary">{{ f.size_human }}</td>
+            <td>
+              <span class="badge bg-secondary text-truncate" style="max-width:120px;"
+                    title="{{ f.mimetype }}">{{ f.mimetype or '—' }}</span>
+            </td>
+            <td class="text-secondary small">
+              {{ f.uploaded_at.strftime('%b %d, %Y %H:%M') }}
+            </td>
+            <td class="text-end pe-3">
+              <a href="{{ url_for('hosting.download', file_id=f.id) }}"
+                 class="btn btn-outline-primary btn-sm me-1">
+                <i class="bi bi-download"></i>
+              </a>
+              <form method="POST" action="{{ url_for('hosting.delete', file_id=f.id) }}"
+                    class="d-inline"
+                    onsubmit="return confirm('Delete {{ f.original_name }}?');">
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="text-center py-5 text-secondary">
+  <i class="bi bi-folder2-open fs-1 d-block mb-3"></i>
+  <p class="lead mb-0">No files yet. Upload your first file above!</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const dropZone    = document.getElementById('dropZone');
+  const fileInput   = document.getElementById('fileInput');
+  const browseBtn   = document.getElementById('browseBtn');
+  const fileLabel   = document.getElementById('selectedFileName');
+  const uploadBtn   = document.getElementById('uploadBtn');
+
+  browseBtn.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+      fileLabel.textContent = fileInput.files[0].name;
+      uploadBtn.disabled = false;
+    }
+  });
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      fileInput.files = files;
+      fileLabel.textContent = files[0].name;
+      uploadBtn.disabled = false;
+    }
+  });
+</script>
+{% endblock %}

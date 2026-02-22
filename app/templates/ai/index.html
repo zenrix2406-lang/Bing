@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}AI Chat — PyHost{% endblock %}
+
+{% block main_class %}container-fluid p-0{% endblock %}
+
+{% block content %}
+<div class="d-flex ai-chat-layout" style="height: calc(100vh - 58px);">
+
+  <!-- Sidebar -->
+  <aside class="ai-sidebar d-flex flex-column border-end border-secondary bg-dark"
+         style="width:280px; min-width:220px; max-width:320px;">
+
+    <div class="p-3 border-bottom border-secondary">
+      <h6 class="fw-bold mb-2"><i class="bi bi-robot me-1 text-info"></i>AI Chat</h6>
+      <!-- New session form -->
+      <form method="POST" action="{{ url_for('ai.new_session') }}">
+        <div class="input-group input-group-sm">
+          <select name="model_id" class="form-select bg-secondary border-secondary text-white">
+            {% for m in models %}
+            <option value="{{ m.id }}"
+              {% if active_session and active_session.model_name == m.id %}selected{% endif %}>
+              {{ m.label }}
+            </option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-primary btn-sm" type="submit" title="New chat session">
+            <i class="bi bi-plus-lg"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="overflow-auto flex-grow-1 p-2">
+      {% if sessions %}
+        {% for s in sessions %}
+        <div class="d-flex align-items-center gap-1 mb-1">
+          <a href="{{ url_for('ai.session_view', session_id=s.id) }}"
+             class="btn btn-sm w-100 text-start text-truncate
+               {% if active_session and active_session.id == s.id %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+            <i class="bi bi-chat-left-text me-1"></i>
+            <span class="small">{{ s.display_title | truncate(28, True) }}</span>
+          </a>
+          <form method="POST" action="{{ url_for('ai.delete_session', session_id=s.id) }}"
+                onsubmit="return confirm('Delete this chat session?');"
+                class="flex-shrink-0">
+            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1">
+              <i class="bi bi-x"></i>
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-secondary small text-center mt-3">No sessions yet.<br>Start one above!</p>
+      {% endif %}
+    </div>
+  </aside>
+
+  <!-- Main chat area -->
+  <div class="d-flex flex-column flex-grow-1 overflow-hidden">
+    {% if active_session %}
+    <!-- Chat header -->
+    <div class="px-4 py-2 border-bottom border-secondary bg-dark d-flex align-items-center">
+      <div>
+        <span class="fw-semibold text-white">{{ active_session.display_title | truncate(60, True) }}</span>
+        <span class="badge bg-info text-dark ms-2">
+          {% for m in models %}{% if m.id == active_session.model_name %}{{ m.label }}{% endif %}{% endfor %}
+        </span>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="flex-grow-1 overflow-auto px-3 py-3" id="chat-messages">
+      {% if messages %}
+        {% for msg in messages %}
+        <div class="d-flex mb-3 {% if msg.role == 'user' %}justify-content-end{% else %}justify-content-start{% endif %}">
+          {% if msg.role == 'assistant' %}
+          <div class="me-2 flex-shrink-0">
+            <div class="rounded-circle bg-info d-flex align-items-center justify-content-center"
+                 style="width:32px;height:32px;">
+              <i class="bi bi-robot text-dark small"></i>
+            </div>
+          </div>
+          {% endif %}
+          <div class="chat-bubble {% if msg.role == 'user' %}chat-bubble-user{% else %}chat-bubble-assistant{% endif %}">
+            <div class="chat-content">{{ msg.content }}</div>
+            <div class="chat-time text-secondary" style="font-size:0.7rem;">
+              {{ msg.created_at.strftime('%H:%M') }}
+            </div>
+          </div>
+          {% if msg.role == 'user' %}
+          <div class="ms-2 flex-shrink-0">
+            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center"
+                 style="width:32px;height:32px;">
+              <i class="bi bi-person-fill text-white small"></i>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-center text-secondary mt-5">
+          <i class="bi bi-chat-dots fs-1 d-block mb-2"></i>
+          <p>No messages yet. Say hello!</p>
+        </div>
+      {% endif %}
+      <div id="chat-bottom"></div>
+    </div>
+
+    <!-- Input area -->
+    <div class="border-top border-secondary p-3 bg-dark">
+      <div class="input-group">
+        <textarea id="message-input"
+                  class="form-control bg-secondary border-secondary text-white"
+                  placeholder="Type your message… (Shift+Enter for newline)"
+                  rows="2" style="resize:none;"></textarea>
+        <button id="send-btn" class="btn btn-primary px-4" type="button">
+          <span id="send-icon"><i class="bi bi-send-fill"></i></span>
+          <span id="send-spinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+        </button>
+      </div>
+      <div id="chat-error" class="text-danger small mt-1 d-none"></div>
+    </div>
+
+    <script>
+      window.AI_SESSION_ID = {{ active_session.id }};
+    </script>
+
+    {% else %}
+    <!-- No session selected -->
+    <div class="flex-grow-1 d-flex align-items-center justify-content-center text-secondary">
+      <div class="text-center">
+        <i class="bi bi-robot display-3 d-block mb-3 text-info"></i>
+        <h5 class="fw-semibold">Select a model and start a new chat</h5>
+        <p class="small">Choose a model from the sidebar and click <strong>+</strong> to begin.</p>
+        {% set missing = [] %}
+        {% if not current_user.openai_key %}{% set _ = missing.append('OpenAI') %}{% endif %}
+        {% if not current_user.anthropic_key %}{% set _ = missing.append('Anthropic') %}{% endif %}
+        {% if not current_user.google_key %}{% set _ = missing.append('Google') %}{% endif %}
+        {% if not current_user.groq_key %}{% set _ = missing.append('Groq') %}{% endif %}
+        {% if not current_user.mistral_key %}{% set _ = missing.append('Mistral') %}{% endif %}
+        {% if missing %}
+        <div class="alert alert-warning d-inline-block mt-3 text-start" style="max-width:400px;">
+          <i class="bi bi-exclamation-triangle me-1"></i>
+          Missing API keys for: <strong>{{ missing | join(', ') }}</strong><br>
+          <a href="{{ url_for('profile.index') }}" class="alert-link">Add keys in Profile &rarr; Settings</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if active_session %}
+<script src="{{ url_for('static', filename='js/ai.js') }}"></script>
+{% endif %}
+{% endblock %}

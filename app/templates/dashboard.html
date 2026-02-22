@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — PyHost{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h3 class="fw-bold mb-0">
+      Welcome back, <span class="text-gradient">{{ current_user.username }}</span> 👋
+    </h3>
+    <p class="text-secondary mb-0 small mt-1">Here's what's happening with your projects</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('editor.index') }}" class="btn btn-success btn-sm">
+      <i class="bi bi-code-slash me-1"></i>New Script
+    </a>
+    <a href="{{ url_for('terminal.index') }}" class="btn btn-warning btn-sm text-dark">
+      <i class="bi bi-terminal me-1"></i>Terminal
+    </a>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="card bg-dark border-secondary stat-card">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon bg-success-subtle rounded-3 p-2">
+          <i class="bi bi-file-earmark-code text-success fs-4"></i>
+        </div>
+        <div>
+          <div class="fw-bold fs-4">{{ snippet_count }}</div>
+          <div class="text-secondary small">Snippets</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card bg-dark border-secondary stat-card">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon bg-primary-subtle rounded-3 p-2">
+          <i class="bi bi-cloud-upload text-primary fs-4"></i>
+        </div>
+        <div>
+          <div class="fw-bold fs-4">{{ file_count }}</div>
+          <div class="text-secondary small">Hosted Files</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card bg-dark border-secondary stat-card">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon bg-info-subtle rounded-3 p-2">
+          <i class="bi bi-chat-dots text-info fs-4"></i>
+        </div>
+        <div>
+          <div class="fw-bold fs-4">{{ session_count }}</div>
+          <div class="text-secondary small">AI Sessions</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card bg-dark border-secondary stat-card">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="stat-icon bg-warning-subtle rounded-3 p-2">
+          <i class="bi bi-terminal-fill text-warning fs-4"></i>
+        </div>
+        <div>
+          <div class="fw-bold fs-4">∞</div>
+          <div class="text-secondary small">Terminal</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Quick Actions -->
+  <div class="col-lg-4">
+    <div class="card bg-dark border-secondary h-100">
+      <div class="card-header border-secondary py-3">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Quick Actions</h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+          <a href="{{ url_for('editor.index') }}" class="list-group-item list-group-item-action bg-transparent border-secondary py-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="rounded-2 p-2 bg-success-subtle"><i class="bi bi-code-slash text-success"></i></div>
+              <div><div class="fw-semibold small">Python Editor</div><div class="text-secondary" style="font-size:.75rem">Write &amp; run Python code</div></div>
+              <i class="bi bi-chevron-right ms-auto text-secondary"></i>
+            </div>
+          </a>
+          <a href="{{ url_for('terminal.index') }}" class="list-group-item list-group-item-action bg-transparent border-secondary py-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="rounded-2 p-2 bg-warning-subtle"><i class="bi bi-terminal-fill text-warning"></i></div>
+              <div><div class="fw-semibold small">Terminal</div><div class="text-secondary" style="font-size:.75rem">Interactive bash shell</div></div>
+              <i class="bi bi-chevron-right ms-auto text-secondary"></i>
+            </div>
+          </a>
+          <a href="{{ url_for('ai.index') }}" class="list-group-item list-group-item-action bg-transparent border-secondary py-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="rounded-2 p-2 bg-info-subtle"><i class="bi bi-robot text-info"></i></div>
+              <div><div class="fw-semibold small">AI Chat</div><div class="text-secondary" style="font-size:.75rem">GPT-4o, Claude, Gemini…</div></div>
+              <i class="bi bi-chevron-right ms-auto text-secondary"></i>
+            </div>
+          </a>
+          <a href="{{ url_for('hosting.index') }}" class="list-group-item list-group-item-action bg-transparent border-secondary py-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="rounded-2 p-2 bg-primary-subtle"><i class="bi bi-cloud-upload text-primary"></i></div>
+              <div><div class="fw-semibold small">File Hosting</div><div class="text-secondary" style="font-size:.75rem">Upload &amp; share files</div></div>
+              <i class="bi bi-chevron-right ms-auto text-secondary"></i>
+            </div>
+          </a>
+          <a href="{{ url_for('editor.packages') }}" class="list-group-item list-group-item-action bg-transparent border-secondary py-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="rounded-2 p-2 bg-danger-subtle"><i class="bi bi-box-seam text-danger"></i></div>
+              <div><div class="fw-semibold small">Python Packages</div><div class="text-secondary" style="font-size:.75rem">View installed packages</div></div>
+              <i class="bi bi-chevron-right ms-auto text-secondary"></i>
+            </div>
+          </a>
+          <a href="{{ url_for('profile.index') }}" class="list-group-item list-group-item-action bg-transparent border-secondary py-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="rounded-2 p-2" style="background:rgba(168,85,247,.15)"><i class="bi bi-gear-fill" style="color:#a855f7"></i></div>
+              <div><div class="fw-semibold small">Settings</div><div class="text-secondary" style="font-size:.75rem">Profile &amp; API keys</div></div>
+              <i class="bi bi-chevron-right ms-auto text-secondary"></i>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Runs -->
+  <div class="col-lg-8">
+    <div class="card bg-dark border-secondary h-100">
+      <div class="card-header border-secondary py-3 d-flex align-items-center justify-content-between">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-clock-history text-success me-2"></i>Recent Code Runs</h6>
+        <a href="{{ url_for('editor.index') }}" class="btn btn-sm btn-outline-secondary py-0">
+          <i class="bi bi-plus me-1"></i>New
+        </a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_runs %}
+        <div class="list-group list-group-flush">
+          {% for run in recent_runs %}
+          <div class="list-group-item bg-transparent border-secondary py-3">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+              <div class="flex-grow-1 min-w-0">
+                <pre class="mb-1 text-secondary small font-monospace text-truncate"
+                     style="max-height:2.5rem;overflow:hidden;white-space:pre;font-size:0.78rem">{{ run.code[:120] }}</pre>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge {% if run.exit_code == 0 %}bg-success{% else %}bg-danger{% endif %} rounded-pill">
+                    exit {{ run.exit_code }}
+                  </span>
+                  <span class="text-secondary" style="font-size:.73rem">{{ run.ran_at.strftime('%b %d, %H:%M') }}</span>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline-secondary py-0 px-2 load-history-btn flex-shrink-0"
+                      data-id="{{ run.id }}" title="Load in editor">
+                <i class="bi bi-arrow-up-right"></i>
+              </button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center text-secondary py-5">
+          <i class="bi bi-code-square fs-1 mb-3 d-block opacity-25"></i>
+          <p class="mb-2">No code runs yet</p>
+          <a href="{{ url_for('editor.index') }}" class="btn btn-sm btn-success">
+            <i class="bi bi-play-fill me-1"></i>Run your first script
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.load-history-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.id;
+    fetch(`/editor/history/${id}`)
+      .then(r => r.json())
+      .then(data => {
+        sessionStorage.setItem('loadCode', data.code);
+        sessionStorage.setItem('loadStdin', data.stdin || '');
+        window.location.href = '/editor/';
+      });
+  });
+});
+</script>
+{% endblock %}

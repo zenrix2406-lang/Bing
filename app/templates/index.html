@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block title %}PyHost — Code, Host & AI-Power Your Python Projects{% endblock %}
+
+{% block main_class %}{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section py-5">
+  <div class="container py-4">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <div class="hero-badge mb-3">
+          <span class="badge rounded-pill px-3 py-2 hero-pill">
+            <i class="bi bi-stars me-1"></i> Next-gen Python Platform
+          </span>
+        </div>
+        <h1 class="display-4 fw-bold hero-title mb-3">
+          Code.<br>
+          <span class="text-gradient">Host.</span><br>
+          <span class="text-gradient-2">AI-Power.</span>
+        </h1>
+        <p class="lead text-secondary mb-4">
+          The all-in-one platform to write, run, and host Python code —
+          with a full terminal, AI assistant, and file hosting built right in.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          {% if current_user.is_authenticated %}
+          <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg px-4">
+            <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+          </a>
+          <a href="{{ url_for('editor.index') }}" class="btn btn-outline-success btn-lg px-4">
+            <i class="bi bi-code-slash me-2"></i>Open Editor
+          </a>
+          {% else %}
+          <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4">
+            <i class="bi bi-rocket-takeoff me-2"></i>Get Started Free
+          </a>
+          <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg px-4">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="hero-code-card">
+          <div class="hero-code-bar">
+            <span class="dot dot-r"></span>
+            <span class="dot dot-y"></span>
+            <span class="dot dot-g"></span>
+            <span class="ms-2 text-secondary small font-monospace">main.py</span>
+          </div>
+          <pre class="hero-code"><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+<span class="kw">def</span> <span class="fn">analyze</span>(data):
+    arr = np.array(data)
+    <span class="kw">return</span> {
+        <span class="st">"mean"</span>: <span class="fn">round</span>(arr.mean(), <span class="num">2</span>),
+        <span class="st">"std"</span>:  <span class="fn">round</span>(arr.std(),  <span class="num">2</span>),
+        <span class="st">"max"</span>:  arr.max(),
+    }
+
+results = <span class="fn">analyze</span>([<span class="num">42</span>, <span class="num">17</span>, <span class="num">99</span>, <span class="num">55</span>, <span class="num">23</span>])
+<span class="fn">print</span>(<span class="st">f"Analysis: {results}"</span>)
+<span class="fn">print</span>(<span class="st">f"✅ Ran at {datetime.now():%H:%M:%S}"</span>)</code></pre>
+          <div class="hero-code-output">
+            <span class="text-success small">▶ Output</span><br>
+            <span class="font-monospace small text-light">Analysis: {'mean': 47.2, 'std': 29.93, 'max': 99}<br>
+✅ Ran at 14:03:27</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats bar -->
+<section class="stats-bar py-3 border-top border-bottom border-secondary">
+  <div class="container">
+    <div class="row text-center g-3">
+      <div class="col-6 col-md-3">
+        <div class="stat-item">
+          <div class="stat-num text-primary fw-bold fs-4">5+</div>
+          <div class="stat-label text-secondary small">AI Models</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-item">
+          <div class="stat-num text-success fw-bold fs-4">100+</div>
+          <div class="stat-label text-secondary small">Python Packages</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-item">
+          <div class="stat-num text-warning fw-bold fs-4">∞</div>
+          <div class="stat-label text-secondary small">Code Snippets</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-item">
+          <div class="stat-num text-info fw-bold fs-4">50MB</div>
+          <div class="stat-label text-secondary small">File Hosting</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Grid -->
+<section class="py-5">
+  <div class="container">
+    <h2 class="text-center fw-bold mb-2">Everything you need</h2>
+    <p class="text-center text-secondary mb-5">One platform for all your Python development needs</p>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-xl-4">
+        <div class="feature-card card bg-dark border-secondary h-100 p-4">
+          <div class="feature-icon mb-3">
+            <div class="icon-circle bg-success-subtle">
+              <i class="bi bi-code-slash text-success fs-4"></i>
+            </div>
+          </div>
+          <h5 class="fw-semibold mb-2">Python Code Editor</h5>
+          <p class="text-secondary small mb-3">
+            Full-featured CodeMirror editor with syntax highlighting, bracket matching,
+            auto-indent, and instant execution with stdout/stderr display.
+          </p>
+          <div class="mt-auto">
+            <a href="{{ url_for('editor.index') if current_user.is_authenticated else url_for('auth.register') }}"
+               class="btn btn-sm btn-success">
+              <i class="bi bi-play-fill me-1"></i>Open Editor
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-xl-4">
+        <div class="feature-card card bg-dark border-secondary h-100 p-4">
+          <div class="feature-icon mb-3">
+            <div class="icon-circle bg-warning-subtle">
+              <i class="bi bi-terminal-fill text-warning fs-4"></i>
+            </div>
+          </div>
+          <h5 class="fw-semibold mb-2">Interactive Terminal</h5>
+          <p class="text-secondary small mb-3">
+            Full xterm.js terminal with real PTY — run bash commands, install packages
+            with pip, launch interactive Python, and more.
+          </p>
+          <div class="mt-auto">
+            <a href="{{ url_for('terminal.index') if current_user.is_authenticated else url_for('auth.register') }}"
+               class="btn btn-sm btn-warning text-dark">
+              <i class="bi bi-terminal me-1"></i>Open Terminal
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-xl-4">
+        <div class="feature-card card bg-dark border-secondary h-100 p-4">
+          <div class="feature-icon mb-3">
+            <div class="icon-circle bg-info-subtle">
+              <i class="bi bi-robot text-info fs-4"></i>
+            </div>
+          </div>
+          <h5 class="fw-semibold mb-2">AI Code Assistant</h5>
+          <p class="text-secondary small mb-3">
+            Chat with GPT-4o, Claude 3.5 Sonnet, Gemini 1.5 Pro, LLaMA 3.3, or Mistral Large.
+            Bring your own API key — no hidden costs.
+          </p>
+          <div class="mt-auto">
+            <a href="{{ url_for('ai.index') if current_user.is_authenticated else url_for('auth.register') }}"
+               class="btn btn-sm btn-info text-dark">
+              <i class="bi bi-chat-dots me-1"></i>Start Chatting
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-xl-4">
+        <div class="feature-card card bg-dark border-secondary h-100 p-4">
+          <div class="feature-icon mb-3">
+            <div class="icon-circle bg-primary-subtle">
+              <i class="bi bi-cloud-upload-fill text-primary fs-4"></i>
+            </div>
+          </div>
+          <h5 class="fw-semibold mb-2">File Hosting</h5>
+          <p class="text-secondary small mb-3">
+            Upload, store, and share any file up to 50 MB. Perfect for datasets,
+            static websites, images, documents, and more.
+          </p>
+          <div class="mt-auto">
+            <a href="{{ url_for('hosting.index') if current_user.is_authenticated else url_for('auth.register') }}"
+               class="btn btn-sm btn-primary">
+              <i class="bi bi-upload me-1"></i>Upload Files
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-xl-4">
+        <div class="feature-card card bg-dark border-secondary h-100 p-4">
+          <div class="feature-icon mb-3">
+            <div class="icon-circle" style="background:rgba(168,85,247,.15)">
+              <i class="bi bi-bookmark-fill fs-4" style="color:#a855f7"></i>
+            </div>
+          </div>
+          <h5 class="fw-semibold mb-2">Code Snippets</h5>
+          <p class="text-secondary small mb-3">
+            Save your favourite scripts as named snippets. Load them in one click,
+            edit and re-save — your personal code library.
+          </p>
+          <div class="mt-auto">
+            <a href="{{ url_for('editor.index') if current_user.is_authenticated else url_for('auth.register') }}"
+               class="btn btn-sm" style="background:rgba(168,85,247,.2);color:#c084fc;border:1px solid #a855f7">
+              <i class="bi bi-bookmarks me-1"></i>My Snippets
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-xl-4">
+        <div class="feature-card card bg-dark border-secondary h-100 p-4">
+          <div class="feature-icon mb-3">
+            <div class="icon-circle bg-danger-subtle">
+              <i class="bi bi-box-seam text-danger fs-4"></i>
+            </div>
+          </div>
+          <h5 class="fw-semibold mb-2">100+ Packages Ready</h5>
+          <p class="text-secondary small mb-3">
+            NumPy, Pandas, Matplotlib, SciPy, Pillow and more are pre-installed.
+            Install any extra package on-the-fly via the terminal.
+          </p>
+          <div class="mt-auto">
+            <a href="{{ url_for('editor.packages') if current_user.is_authenticated else url_for('auth.register') }}"
+               class="btn btn-sm btn-danger">
+              <i class="bi bi-list-ul me-1"></i>View Packages
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI Models Section -->
+<section class="py-5 bg-section">
+  <div class="container">
+    <h2 class="text-center fw-bold mb-2">Every Major AI Model</h2>
+    <p class="text-center text-secondary mb-4">Connect your API keys and chat with the best LLMs</p>
+    <div class="row g-3 justify-content-center">
+      {% for model in [
+        ('GPT-4o', 'OpenAI', '#10a37f'),
+        ('Claude 3.5', 'Anthropic', '#c96442'),
+        ('Gemini 1.5', 'Google', '#4285f4'),
+        ('LLaMA 3.3', 'Meta/Groq', '#0668E1'),
+        ('Mistral', 'Mistral AI', '#7a2ff7'),
+      ] %}
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card bg-dark border-secondary text-center p-3 h-100 model-card">
+          <div class="mb-2">
+            <i class="bi bi-cpu fs-3" style="color:{{ model[2] }}"></i>
+          </div>
+          <div class="fw-semibold small">{{ model[0] }}</div>
+          <div class="text-secondary" style="font-size:0.75rem">{{ model[1] }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if not current_user.is_authenticated %}
+<section class="py-5">
+  <div class="container text-center">
+    <div class="cta-card p-5 rounded-4">
+      <h2 class="fw-bold mb-3">Ready to start coding?</h2>
+      <p class="text-secondary mb-4 lead">
+        Create your free account and start writing Python in seconds.
+      </p>
+      <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5">
+        <i class="bi bi-rocket-takeoff me-2"></i>Create Free Account
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

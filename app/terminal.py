@@ -61,8 +61,6 @@ def _register_events(sio: SocketIO):
         def reader():
             while True:
                 try:
-                    if not proc.isalive():
-                        break
                     data = proc.read(PTY_READ_SIZE)
                     sio.emit('terminal_output',
                              {'data': data.decode('utf-8', errors='replace')},

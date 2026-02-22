@@ -39,10 +39,10 @@ def create_app():
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'warning'
 
-    # SocketIO — use eventlet async mode for PTY threads
+    # SocketIO — use threading mode (stable; works without eventlet)
     allowed_origins = os.environ.get('CORS_ALLOWED_ORIGINS', None)
-    socketio.init_app(app, async_mode='eventlet',
-                      cors_allowed_origins=allowed_origins or [],
+    socketio.init_app(app, async_mode='threading',
+                      cors_allowed_origins=allowed_origins or ['http://localhost:5000'],
                       logger=False, engineio_logger=False)
 
     from .auth import auth_bp

@@ -47,6 +47,8 @@ def run_code():
         with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
             f.write(code)
             tmp_path = f.name
+        import stat
+        os.chmod(tmp_path, stat.S_IRUSR | stat.S_IWUSR)  # 0o600 — owner read/write only
 
         result = subprocess.run(
             [sys.executable, tmp_path],

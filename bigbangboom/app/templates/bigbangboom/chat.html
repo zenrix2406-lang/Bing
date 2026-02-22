@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}BigBangBoom AI — Chat{% endblock %}
+
+{% block main_class %}container-fluid p-0{% endblock %}
+
+{% block content %}
+<div class="d-flex bbb-chat-layout" style="height:calc(100vh - 60px);">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+  <aside class="bbb-chat-sidebar d-flex flex-column border-end border-secondary">
+    <div class="p-3 border-bottom border-secondary">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h6 class="fw-bold mb-0"><span class="bbb-text-glow">💥 BigBangBoom AI</span></h6>
+        <a href="{{ url_for('train.index') }}" class="btn btn-xs btn-outline-secondary"
+           title="Manage Training Prompts">
+          <i class="bi bi-brain"></i>
+        </a>
+      </div>
+      <form method="POST" action="{{ url_for('bbb.new_session') }}">
+        <button type="submit" class="btn bbb-btn-primary w-100">
+          <i class="bi bi-plus-lg me-1"></i>New Chat
+        </button>
+      </form>
+    </div>
+
+    <!-- Session list -->
+    <div class="overflow-auto flex-grow-1 p-2">
+      {% if sessions %}
+        {% for s in sessions %}
+        <div class="d-flex align-items-center gap-1 mb-1">
+          <a href="{{ url_for('bbb.session_view', session_id=s.id) }}"
+             class="btn btn-sm w-100 text-start text-truncate
+               {% if active_session and active_session.id == s.id %}bbb-session-active{% else %}bbb-session-item{% endif %}">
+            <i class="bi bi-chat-left-dots me-1"></i>
+            <span class="small">{{ s.display_title | truncate(26, True) }}</span>
+          </a>
+          <form method="POST" action="{{ url_for('bbb.delete_session', session_id=s.id) }}"
+                onsubmit="return confirm('Delete this session?');" class="flex-shrink-0">
+            <button type="submit" class="btn btn-xs btn-outline-danger py-0 px-1">
+              <i class="bi bi-x"></i>
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-secondary small text-center mt-4">
+          <i class="bi bi-chat-dots d-block fs-3 mb-2"></i>
+          No chats yet.<br>Start one above!
+        </p>
+      {% endif %}
+    </div>
+
+    <!-- Bottom: settings link -->
+    <div class="p-3 border-top border-secondary">
+      <a href="{{ url_for('bbb.settings') }}" class="btn btn-sm btn-outline-secondary w-100">
+        <i class="bi bi-gear me-1"></i>AI Settings
+      </a>
+    </div>
+  </aside>
+
+  <!-- ── Main chat area ───────────────────────────────────────────────────── -->
+  <div class="d-flex flex-column flex-grow-1 overflow-hidden">
+    {% if active_session %}
+    <!-- Chat header -->
+    <div class="px-4 py-2 border-bottom border-secondary bbb-chat-header d-flex align-items-center justify-content-between">
+      <div>
+        <span class="fw-semibold">{{ active_session.display_title | truncate(60, True) }}</span>
+        <span class="bbb-badge-active ms-2 d-none d-sm-inline">
+          <i class="bi bi-robot me-1"></i>BigBangBoom AI
+        </span>
+      </div>
+      <span class="text-secondary small d-none d-md-inline">
+        <i class="bi bi-brain me-1"></i>
+        {{ current_user.ai_provider | title }} ·
+        Training prompts: {{ current_user.training_prompts | selectattr('is_active') | list | length }} active
+      </span>
+    </div>
+
+    <!-- Messages -->
+    <div class="flex-grow-1 overflow-auto px-3 py-3 bbb-messages" id="bbb-messages">
+      {% if messages %}
+        {% for msg in messages %}
+        <div class="d-flex mb-3
+          {% if msg.role == 'user' %}justify-content-end{% else %}justify-content-start{% endif %}">
+
+          {% if msg.role == 'assistant' %}
+          <div class="me-2 flex-shrink-0">
+            <div class="bbb-msg-avatar bbb-msg-avatar-bot">💥</div>
+          </div>
+          {% endif %}
+
+          <div class="bbb-bubble
+            {% if msg.role == 'user' %}bbb-bubble-user{% else %}bbb-bubble-bot{% endif %}">
+            <div class="bbb-msg-content">{{ msg.content }}</div>
+            <div class="bbb-msg-time">{{ msg.created_at.strftime('%H:%M') }}</div>
+          </div>
+
+          {% if msg.role == 'user' %}
+          <div class="ms-2 flex-shrink-0">
+            <div class="bbb-msg-avatar bbb-msg-avatar-user">
+              {{ current_user.username[0].upper() }}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="bbb-empty-chat text-center" id="bbb-empty-state">
+          <span class="bbb-empty-icon">💥</span>
+          <h5 class="fw-semibold mt-3">BigBangBoom AI is ready</h5>
+          <p class="text-secondary">Ask me anything — I will handle every request, completely.</p>
+        </div>
+      {% endif %}
+      <div id="bbb-bottom"></div>
+    </div>
+
+    <!-- Input area -->
+    <div class="border-top border-secondary p-3 bbb-input-area">
+      <div class="bbb-input-wrapper">
+        <textarea id="bbb-input"
+                  class="bbb-chat-input"
+                  placeholder="Ask BigBangBoom AI anything… (Enter to send, Shift+Enter for newline)"
+                  rows="1"></textarea>
+        <button id="bbb-send" class="bbb-send-btn" type="button">
+          <span id="bbb-send-icon"><i class="bi bi-send-fill"></i></span>
+          <span id="bbb-send-spinner" class="spinner-border spinner-border-sm d-none"></span>
+        </button>
+      </div>
+      <div id="bbb-error" class="text-danger small mt-2 d-none"></div>
+    </div>
+
+    <script>window.BBB_SESSION_ID = {{ active_session.id }};</script>
+
+    {% else %}
+    <!-- No session selected -->
+    <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+      <div class="text-center px-4">
+        <span style="font-size:4rem;">💥</span>
+        <h4 class="fw-bold mt-3 mb-2 bbb-text-glow">BigBangBoom AI</h4>
+        <p class="text-secondary mb-4">
+          Your unrestricted AI, trained your way.<br>
+          Click <strong>New Chat</strong> in the sidebar to begin.
+        </p>
+        {% if not current_user.ai_api_key %}
+        <div class="alert bbb-alert-warn d-inline-block text-start" style="max-width:400px;">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          No API key configured.<br>
+          <a href="{{ url_for('bbb.settings') }}" class="bbb-link fw-semibold">
+            Go to Settings to add your key →
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if active_session %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endif %}
+{% endblock %}

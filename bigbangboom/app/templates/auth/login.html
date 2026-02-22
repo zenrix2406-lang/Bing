@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Login — BigBangBoom AI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-sm-10 col-md-7 col-lg-5 col-xl-4">
+    <div class="bbb-auth-card p-4 p-md-5 mt-4">
+      <div class="text-center mb-4">
+        <span style="font-size:2.5rem;">💥</span>
+        <h3 class="fw-bold mt-2 bbb-text-glow">Welcome back</h3>
+        <p class="text-secondary small">Login to your BigBangBoom AI account</p>
+      </div>
+
+      <form method="POST" action="{{ url_for('auth.login') }}">
+        <div class="mb-3">
+          <label class="form-label fw-medium">Username</label>
+          <div class="input-group">
+            <span class="input-group-text bbb-input-icon"><i class="bi bi-person-fill"></i></span>
+            <input type="text" name="username" class="form-control bbb-input"
+                   placeholder="your_username" required autofocus />
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-medium">Password</label>
+          <div class="input-group">
+            <span class="input-group-text bbb-input-icon"><i class="bi bi-lock-fill"></i></span>
+            <input type="password" name="password" class="form-control bbb-input"
+                   placeholder="••••••••" required />
+          </div>
+        </div>
+
+        <button type="submit" class="btn bbb-btn-primary w-100 btn-lg fw-semibold">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Login
+        </button>
+      </form>
+
+      <hr class="border-secondary my-4" />
+      <p class="text-center text-secondary small mb-0">
+        Don't have an account?
+        <a href="{{ url_for('auth.register') }}" class="bbb-link">Create one free</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

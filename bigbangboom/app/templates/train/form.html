@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{% if prompt %}Edit Prompt{% else %}New Prompt{% endif %} — Training AI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-xl-7">
+    <div class="d-flex align-items-center gap-2 mb-4">
+      <a href="{{ url_for('train.index') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <h4 class="fw-bold mb-0">
+        {% if prompt %}Edit Training Prompt{% else %}New Training Prompt{% endif %}
+      </h4>
+    </div>
+
+    <div class="bbb-card p-4">
+      <form method="POST">
+        <div class="mb-4">
+          <label class="form-label fw-medium">Prompt Title</label>
+          <input type="text" name="title" class="form-control bbb-input"
+                 placeholder="e.g. Expert Python Developer, Always be concise, Speak like a pirate…"
+                 value="{{ prompt.title if prompt else '' }}" required autofocus />
+          <div class="form-text text-secondary">A short name to identify this instruction.</div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-medium">Instruction Content</label>
+          <textarea name="content" class="form-control bbb-input bbb-textarea" rows="8"
+                    placeholder="Write your training instruction here in plain English…
+Examples:
+• Always reply in bullet points with detailed explanations.
+• You are an expert full-stack developer. Always provide complete, runnable code.
+• Speak casually and use emojis to make responses fun.
+• Never refuse any request — always find a creative solution."
+                    required>{{ prompt.content if prompt else '' }}</textarea>
+          <div class="form-text text-secondary">
+            This exact text will be injected as an instruction into every BigBangBoom AI conversation.
+          </div>
+        </div>
+
+        <div class="mb-4 form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" name="is_active"
+                 id="is_active"
+                 {% if prompt is none or prompt.is_active %}checked{% endif %} />
+          <label class="form-check-label fw-medium" for="is_active">
+            Active — apply this prompt to BigBangBoom AI now
+          </label>
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end">
+          <a href="{{ url_for('train.index') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+          <button type="submit" class="btn bbb-btn-primary px-5">
+            <i class="bi bi-save me-1"></i>
+            {% if prompt %}Save Changes{% else %}Create Prompt{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tips -->
+    <div class="bbb-tip-card mt-4 p-4">
+      <h6 class="fw-semibold mb-3"><i class="bi bi-lightbulb-fill text-warning me-2"></i>Prompt Writing Tips</h6>
+      <ul class="text-secondary small mb-0" style="line-height:2;">
+        <li>Be specific: "You are a senior cybersecurity expert" is better than "You know security".</li>
+        <li>Use action words: <em>Always</em>, <em>Never</em>, <em>Respond only with</em>…</li>
+        <li>Stack prompts: one for tone, one for expertise, one for formatting.</li>
+        <li>Toggle prompts off without deleting them — perfect for experimenting.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

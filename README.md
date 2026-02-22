@@ -26,7 +26,7 @@ A production-quality full-stack web platform built with Flask.
 ```bash
 # 1. Clone & enter directory
 git clone <repo-url>
-cd Bing
+cd Bing   # or whatever you named the cloned directory
 
 # 2. Create a virtual environment
 python3 -m venv venv

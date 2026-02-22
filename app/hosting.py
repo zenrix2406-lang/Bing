@@ -44,10 +44,12 @@ def upload():
         flash('Invalid filename.', 'danger')
         return redirect(url_for('hosting.index'))
 
-    # Block dangerous file extensions
+    # Block dangerous file extensions (allowlist approach: block known dangerous types)
     BLOCKED_EXTENSIONS = {
-        '.exe', '.bat', '.cmd', '.sh', '.ps1', '.msi', '.com', '.scr',
-        '.vbs', '.vbe', '.js', '.jse', '.wsf', '.wsh', '.pif',
+        '.exe', '.bat', '.cmd', '.sh', '.bash', '.zsh', '.ps1', '.ps2',
+        '.msi', '.com', '.scr', '.vbs', '.vbe', '.jse', '.wsf', '.wsh',
+        '.pif', '.py', '.pyc', '.rb', '.pl', '.php', '.jar', '.war',
+        '.ear', '.app', '.apk', '.deb', '.rpm', '.dmg', '.pkg', '.run',
     }
     ext = os.path.splitext(original_name)[1].lower()
     if ext in BLOCKED_EXTENSIONS:

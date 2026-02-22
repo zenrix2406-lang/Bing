@@ -222,7 +222,7 @@ def send_message(session_id):
         try:
             err_body = exc.response.json()
             err_msg = (err_body.get('error', {}) or {}).get('message') or str(exc)
-        except Exception:
+        except (ValueError, AttributeError, KeyError):
             err_msg = str(exc)
         # Remove the user message we already saved so the session stays consistent
         db.session.delete(user_msg)

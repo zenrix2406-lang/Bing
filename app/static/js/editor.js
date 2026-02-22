@@ -80,37 +80,31 @@
     if (savedTheme) { themeSelect.value = savedTheme; cm.setOption('theme', savedTheme); }
   }
 
-  // ── Run code ──────────────────────────────────────────────────────────────
-  function setRunning(state) {
-    runBtn.disabled = state;
-    runBtn.innerHTML = state
-      ? '<span class="spinner-border spinner-border-sm me-1"></span>Running…'
-      : '<i class="bi bi-play-fill me-1"></i>Run';
-    if (runStatus) runStatus.textContent = state ? 'Executing…' : '';
-  }
+  // ── SocketIO connection for interactive code execution ───────────────────
+  const socket = io('/editor', { transports: ['websocket', 'polling'] });
+  let codeRunning = false;
+  let runStartTime = null;
 
-  function showOutput(stdout, stderr, exitCode, elapsed) {
-    const text = [stdout, stderr].filter(Boolean).join('');
-    outputEl.innerHTML = '';
+  const interactiveInput = document.getElementById('interactive-input');
+  const codeStdin        = document.getElementById('code-stdin');
+  const sendInputBtn     = document.getElementById('send-input-btn');
 
-    if (text) {
-      if (stderr && stderr.includes('💡 Hint:')) {
-        const parts = text.split('💡 Hint:');
-        outputEl.textContent = parts[0];
-        if (parts[1]) {
-          const hint = document.createElement('span');
-          hint.className = 'hint-block';
-          hint.textContent = '\n💡 Hint:' + parts[1];
-          outputEl.appendChild(hint);
-        }
-      } else {
-        outputEl.textContent = text;
-      }
-    } else {
-      outputEl.textContent = '(no output)';
+  socket.on('code_output', function (data) {
+    // Append output text in real time
+    if (outputEl.textContent === '(nothing to run)' || outputEl.querySelector('strong')) {
+      outputEl.innerHTML = '';
     }
+    outputEl.textContent += data.data;
+    outputEl.scrollTop = outputEl.scrollHeight;
+  });
 
-    outputEl.classList.toggle('has-error', !!stderr);
+  socket.on('code_done', function (data) {
+    codeRunning = false;
+    setRunning(false);
+    if (interactiveInput) interactiveInput.classList.add('d-none');
+
+    const exitCode = data.exit_code;
+    const elapsed = runStartTime ? Date.now() - runStartTime : null;
 
     if (exitBadge) {
       exitBadge.classList.remove('d-none', 'bg-success', 'bg-danger', 'bg-warning');
@@ -122,55 +116,70 @@
         exitBadge.textContent = '⏱ timeout';
       } else {
         exitBadge.className = 'badge bg-danger rounded-pill';
-        exitBadge.textContent = `✗ exit ${exitCode}`;
+        exitBadge.textContent = '✗ exit ' + exitCode;
       }
     }
 
     if (runTime && elapsed) {
-      runTime.textContent = `${elapsed}ms`;
+      runTime.textContent = elapsed + 'ms';
       runTime.classList.remove('d-none');
     }
+  });
+
+  function sendStdinInput() {
+    if (!codeRunning || !codeStdin) return;
+    const text = codeStdin.value;
+    socket.emit('code_input', { data: text + '\n' });
+    codeStdin.value = '';
+    codeStdin.focus();
+  }
+
+  if (sendInputBtn) sendInputBtn.addEventListener('click', sendStdinInput);
+  if (codeStdin) {
+    codeStdin.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendStdinInput();
+      }
+    });
+  }
+
+  // ── Run code ──────────────────────────────────────────────────────────────
+  function setRunning(state) {
+    runBtn.disabled = state;
+    runBtn.innerHTML = state
+      ? '<span class="spinner-border spinner-border-sm me-1"></span>Running…'
+      : '<i class="bi bi-play-fill me-1"></i>Run';
+    if (runStatus) runStatus.textContent = state ? 'Executing…' : '';
   }
 
   function runCode() {
-    const code  = cm.getValue();
-    const stdin = stdinEl ? stdinEl.value : '';
+    const code = cm.getValue();
 
     if (!code.trim()) {
       outputEl.textContent = '(nothing to run)';
       return;
     }
 
+    codeRunning = true;
+    runStartTime = Date.now();
     setRunning(true);
-    outputEl.textContent = '';
+    outputEl.innerHTML = '';
+    outputEl.classList.remove('has-error');
     if (exitBadge) exitBadge.classList.add('d-none');
     if (runTime) runTime.classList.add('d-none');
 
-    const t0 = Date.now();
+    // Show interactive input area
+    if (interactiveInput) interactiveInput.classList.remove('d-none');
+    if (codeStdin) { codeStdin.value = ''; codeStdin.focus(); }
 
-    fetch('/editor/run', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, stdin }),
-    })
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then(data => {
-        const elapsed = Date.now() - t0;
-        if (data.error) {
-          outputEl.textContent = data.error;
-          outputEl.classList.add('has-error');
-        } else {
-          showOutput(data.stdout, data.stderr, data.exit_code, elapsed);
-        }
-      })
-      .catch(err => {
-        outputEl.textContent = `Network error: ${err.message}`;
-        outputEl.classList.add('has-error');
-      })
-      .finally(() => setRunning(false));
+    socket.emit('run_code', { code: code });
+
+    // If there's pre-entered stdin, send it as initial input
+    const preStdin = stdinEl ? stdinEl.value : '';
+    if (preStdin) {
+      socket.emit('code_input', { data: preStdin + '\n' });
+    }
   }
 
   // ── Snippet management ────────────────────────────────────────────────────
@@ -337,10 +346,12 @@
   });
 
   if (clearOutBtn) clearOutBtn.addEventListener('click', () => {
+    if (codeRunning) { socket.emit('stop_code'); codeRunning = false; setRunning(false); }
     outputEl.textContent = '';
     outputEl.classList.remove('has-error');
     if (exitBadge) exitBadge.classList.add('d-none');
     if (runTime) runTime.classList.add('d-none');
+    if (interactiveInput) interactiveInput.classList.add('d-none');
   });
 
   if (copyBtn) copyBtn.addEventListener('click', (e) => {

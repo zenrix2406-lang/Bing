@@ -51,6 +51,7 @@ def create_app():
     from .ai import ai_bp
     from .profile import profile_bp
     from .terminal import terminal_bp, init_socketio
+    from .editor import init_editor_socketio
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(editor_bp)
@@ -60,6 +61,7 @@ def create_app():
     app.register_blueprint(terminal_bp)
 
     init_socketio(socketio)
+    init_editor_socketio(socketio)
 
     from . import models
 

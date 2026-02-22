@@ -40,9 +40,9 @@ def create_app():
     login_manager.login_message_category = 'warning'
 
     # SocketIO — use threading mode (stable; works without eventlet)
-    allowed_origins = os.environ.get('CORS_ALLOWED_ORIGINS', None)
+    allowed_origins = os.environ.get('CORS_ALLOWED_ORIGINS', '*')
     socketio.init_app(app, async_mode='threading',
-                      cors_allowed_origins=allowed_origins or ['http://localhost:5000'],
+                      cors_allowed_origins=allowed_origins,
                       logger=False, engineio_logger=False)
 
     from .auth import auth_bp
@@ -51,6 +51,7 @@ def create_app():
     from .ai import ai_bp
     from .profile import profile_bp
     from .terminal import terminal_bp, init_socketio
+    from .editor import init_editor_socketio
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(editor_bp)
@@ -60,6 +61,7 @@ def create_app():
     app.register_blueprint(terminal_bp)
 
     init_socketio(socketio)
+    init_editor_socketio(socketio)
 
     from . import models
 

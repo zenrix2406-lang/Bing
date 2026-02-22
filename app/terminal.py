@@ -37,12 +37,20 @@ def _register_events(sio: SocketIO):
 
         env = os.environ.copy()
         env['TERM'] = 'xterm-256color'
-        env['PS1'] = r'\u@pyhost:\w\$ '
+        # Kali Linux-style two-line prompt with box-drawing characters
+        username = current_user.username
+        env['PS1'] = (
+            r'\[\033[1;32m\]┌──(\[\033[1;34m\]'
+            + username
+            + r'\[\033[1;32m\]㉿\[\033[1;34m\]web\[\033[1;32m\])'
+            r'-[\[\033[0;1m\]\w\[\033[1;32m\]]'
+            r'\n\[\033[1;32m\]└─\[\033[1;34m\]\$\[\033[0m\] '
+        )
         user_home = f'/tmp/pyhost_{current_user.id}'
         os.makedirs(user_home, mode=0o700, exist_ok=True)
         env['HOME'] = user_home
-        env['USER'] = current_user.username
-        env['LOGNAME'] = current_user.username
+        env['USER'] = username
+        env['LOGNAME'] = username
 
         try:
             proc = ptyprocess.PtyProcess.spawn(

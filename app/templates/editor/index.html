@@ -185,6 +185,18 @@ print("\n Done!")
         </div>
         <!-- output body -->
         <pre id="output" class="output-scroll">Click <strong>Run</strong> or press <kbd>Ctrl+Enter</kbd> to execute.</pre>
+        <!-- Interactive input for stdin -->
+        <div id="interactive-input" class="d-none border-top border-secondary">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-dark border-secondary text-success font-monospace" style="font-size:12px">&gt;</span>
+            <input type="text" id="code-stdin" class="form-control bg-dark border-secondary text-white font-monospace"
+                   style="font-size:12px" placeholder="Type input and press Enter…"
+                   autocomplete="off" spellcheck="false">
+            <button id="send-input-btn" class="btn btn-outline-success btn-sm" type="button">
+              <i class="bi bi-arrow-return-left"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -222,5 +234,6 @@ print("\n Done!")
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/edit/closebrackets.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/edit/matchbrackets.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/selection/active-line.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io@4.7.4/dist/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='js/editor.js') }}"></script>
 {% endblock %}

@@ -1,9 +1,14 @@
 import os
+import stat
 import subprocess
 import sys
 import tempfile
+import threading
+import time
+import ptyprocess
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
+from flask_socketio import SocketIO, emit
 from . import db
 from .models import CodeSnippet, RunHistory
 
@@ -47,7 +52,6 @@ def run_code():
         with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, encoding='utf-8') as f:
             f.write(code)
             tmp_path = f.name
-        import stat
         os.chmod(tmp_path, stat.S_IRUSR | stat.S_IWUSR)  # 0o600 — owner read/write only
 
         result = subprocess.run(
@@ -196,3 +200,201 @@ def packages():
                        key=lambda d: d.metadata['Name'].lower()):
         pkgs.append({'name': dist.metadata['Name'], 'version': dist.metadata['Version']})
     return render_template('editor/packages.html', packages=pkgs)
+
+
+# ── Interactive SocketIO code runner ───────────────────────────────────────────
+
+PTY_READ_SIZE = 4096
+_code_sessions: dict = {}
+_code_lock = threading.Lock()
+_editor_sio = None
+
+
+def init_editor_socketio(sio: SocketIO):
+    global _editor_sio
+    _editor_sio = sio
+    _register_editor_events(sio)
+
+
+def _register_editor_events(sio: SocketIO):
+
+    @sio.on('run_code', namespace='/editor')
+    def on_run_code(data):
+        if not current_user.is_authenticated:
+            return
+        sid = request.sid
+        code = data.get('code', '')
+
+        from flask import current_app
+        app = current_app._get_current_object()
+
+        # Kill any existing session for this client
+        with _code_lock:
+            old = _code_sessions.pop(sid, None)
+        if old:
+            proc, tmp = old
+            if proc.isalive():
+                proc.terminate(force=True)
+            if tmp:
+                try:
+                    os.unlink(tmp)
+                except OSError:
+                    pass
+
+        if not isinstance(code, str) or not code.strip():
+            emit('code_output', {'data': '(nothing to run)\n'}, namespace='/editor')
+            emit('code_done', {'exit_code': 0}, namespace='/editor')
+            return
+
+        tmp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode='w', suffix='.py', delete=False, encoding='utf-8'
+            ) as f:
+                f.write(code)
+                tmp_path = f.name
+            os.chmod(tmp_path, stat.S_IRUSR | stat.S_IWUSR)
+
+            env = os.environ.copy()
+            env['PYTHONUNBUFFERED'] = '1'
+
+            proc = ptyprocess.PtyProcess.spawn(
+                [sys.executable, '-u', tmp_path],
+                env=env,
+                dimensions=(24, 80),
+            )
+
+            with _code_lock:
+                _code_sessions[sid] = (proc, tmp_path)
+
+            user_id = current_user.id
+
+            def reader():
+                collected_stdout = []
+                while True:
+                    try:
+                        raw = proc.read(PTY_READ_SIZE)
+                        text = raw.decode('utf-8', errors='replace')
+                        if tmp_path and tmp_path in text:
+                            text = text.replace(tmp_path, 'main.py')
+                        collected_stdout.append(text)
+                        sio.emit('code_output', {'data': text},
+                                 to=sid, namespace='/editor')
+                    except Exception:
+                        break
+
+                exit_code = proc.exitstatus if proc.exitstatus is not None else -1
+                sio.emit('code_done', {'exit_code': exit_code},
+                         to=sid, namespace='/editor')
+
+                with _code_lock:
+                    _code_sessions.pop(sid, None)
+
+                # Save to run history
+                stdout_text = ''.join(collected_stdout)
+
+                # Clean up temp file
+                if tmp_path:
+                    try:
+                        os.unlink(tmp_path)
+                    except OSError:
+                        pass
+
+                # Persist history in app context
+                try:
+                    with app.app_context():
+                        hist = RunHistory(
+                            user_id=user_id,
+                            code=code[:MAX_CODE_STORE],
+                            stdin=None,
+                            stdout=stdout_text[:MAX_STDOUT_STORE] if stdout_text else None,
+                            stderr=None,
+                            exit_code=exit_code,
+                        )
+                        db.session.add(hist)
+                        old_runs = RunHistory.query.filter_by(user_id=user_id).order_by(
+                            RunHistory.ran_at.desc()).offset(MAX_HISTORY).all()
+                        for o in old_runs:
+                            db.session.delete(o)
+                        db.session.commit()
+                except Exception:
+                    try:
+                        db.session.rollback()
+                    except Exception:
+                        pass
+
+            t = threading.Thread(target=reader, daemon=True)
+            t.start()
+
+            # Timeout killer
+            def timeout_killer():
+                time.sleep(TIMEOUT_SECONDS)
+                with _code_lock:
+                    session = _code_sessions.get(sid)
+                if session:
+                    p, _ = session
+                    if p.isalive():
+                        p.terminate(force=True)
+                        sio.emit('code_output', {
+                            'data': f'\n⏱ Execution timed out after {TIMEOUT_SECONDS}s.\n'
+                        }, to=sid, namespace='/editor')
+
+            t2 = threading.Thread(target=timeout_killer, daemon=True)
+            t2.start()
+
+        except Exception as exc:
+            emit('code_output', {'data': f'Server error: {exc}\n'}, namespace='/editor')
+            emit('code_done', {'exit_code': -1}, namespace='/editor')
+            if tmp_path:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+
+    @sio.on('code_input', namespace='/editor')
+    def on_code_input(data):
+        if not current_user.is_authenticated:
+            return
+        sid = request.sid
+        with _code_lock:
+            session = _code_sessions.get(sid)
+        if session:
+            proc, _ = session
+            if proc.isalive():
+                try:
+                    text = data.get('data', '')
+                    proc.write(text.encode('utf-8', errors='replace'))
+                except Exception:
+                    pass
+
+    @sio.on('stop_code', namespace='/editor')
+    def on_stop_code():
+        if not current_user.is_authenticated:
+            return
+        sid = request.sid
+        with _code_lock:
+            session = _code_sessions.pop(sid, None)
+        if session:
+            proc, tmp_path = session
+            if proc.isalive():
+                proc.terminate(force=True)
+            if tmp_path:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+
+    @sio.on('disconnect', namespace='/editor')
+    def on_editor_disconnect():
+        sid = request.sid
+        with _code_lock:
+            session = _code_sessions.pop(sid, None)
+        if session:
+            proc, tmp_path = session
+            if proc.isalive():
+                proc.terminate(force=True)
+            if tmp_path:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass

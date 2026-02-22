@@ -1,28 +1,79 @@
 {% extends "base.html" %}
-{% block title %}Terminal — PyHost{% endblock %}
+{% block title %}Kali Terminal — PyHost{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
 <style>
-.terminal-container {
-  background: #0d1117;
+/* ── Kali Linux Terminal Styling ──────────────────────────────── */
+.kali-terminal-wrapper {
+  background: #000000;
   border-radius: 0.5rem;
-  border: 1px solid #30363d;
+  border: 1px solid #1a3a1a;
   overflow: hidden;
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.05), 0 4px 24px rgba(0,0,0,.6);
 }
-.terminal-titlebar {
-  background: #161b22;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid #30363d;
+.kali-titlebar {
+  background: linear-gradient(180deg, #2d2d2d 0%, #1a1a1a 100%);
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid #333;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
-.dot { width:12px; height:12px; border-radius:50%; display:inline-block; }
-.dot-red   { background:#ff5f57; }
-.dot-yellow{ background:#febc2e; }
-.dot-green { background:#28c840; }
-#terminal { padding: 0.5rem; }
+.kali-titlebar .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.kali-titlebar .dot-close  { background: #ff5f57; }
+.kali-titlebar .dot-min    { background: #febc2e; }
+.kali-titlebar .dot-max    { background: #28c840; }
+.kali-titlebar .kali-title {
+  color: #aaa;
+  font-size: 0.78rem;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  margin-left: auto;
+  margin-right: auto;
+}
+#terminal {
+  padding: 0.25rem;
+  background: #000000;
+}
+.kali-toolbar {
+  background: #0a0a0a;
+  border-top: 1px solid #1a3a1a;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.kali-toolbar .badge { font-size: 0.7rem; }
+.kali-info-card {
+  background: #0a0f0a;
+  border: 1px solid #1a3a1a;
+  border-radius: 0.5rem;
+}
+.kali-info-card .card-header {
+  background: #0d120d;
+  border-bottom: 1px solid #1a3a1a;
+  color: #3fb950;
+}
+.kali-cmd-btn {
+  background: #0d120d;
+  border: 1px solid #1a3a1a;
+  color: #3fb950;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  transition: background .15s, border-color .15s;
+}
+.kali-cmd-btn:hover {
+  background: #1a3a1a;
+  border-color: #3fb950;
+  color: #56d364;
+}
+.kali-section-title {
+  color: #3fb950;
+  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.5px;
+}
 </style>
 {% endblock %}
 
@@ -31,70 +82,100 @@
 {% block content %}
 <div class="d-flex align-items-center justify-content-between mb-3">
   <h4 class="fw-bold mb-0">
-    <i class="bi bi-terminal-fill me-2 text-warning"></i>Interactive Terminal
+    <i class="bi bi-terminal-fill me-2" style="color:#3fb950"></i>
+    <span style="color:#3fb950">Kali</span> Terminal
   </h4>
-  <div class="d-flex gap-2">
+  <div class="d-flex gap-2 align-items-center">
     <span id="term-status" class="badge bg-secondary">Connecting…</span>
-    <button id="clear-term-btn" class="btn btn-outline-secondary btn-sm">
+    <button id="clear-term-btn" class="btn btn-sm kali-cmd-btn">
       <i class="bi bi-eraser me-1"></i>Clear
     </button>
-    <button id="reconnect-btn" class="btn btn-outline-warning btn-sm">
+    <button id="reconnect-btn" class="btn btn-sm kali-cmd-btn">
       <i class="bi bi-arrow-clockwise me-1"></i>Reconnect
     </button>
   </div>
 </div>
 
-<div class="terminal-container">
-  <div class="terminal-titlebar">
-    <span class="dot dot-red"></span>
-    <span class="dot dot-yellow"></span>
-    <span class="dot dot-green"></span>
-    <span class="text-secondary small ms-2 font-monospace">bash — PyHost Terminal</span>
+<div class="kali-terminal-wrapper">
+  <div class="kali-titlebar">
+    <span class="dot dot-close"></span>
+    <span class="dot dot-min"></span>
+    <span class="dot dot-max"></span>
+    <span class="kali-title">{{ current_user.username }}@web: ~</span>
   </div>
   <div id="terminal"></div>
+  <div class="kali-toolbar">
+    <span class="badge" style="background:#1a3a1a;color:#3fb950">
+      <i class="bi bi-shield-fill-check me-1"></i>PTY Shell
+    </span>
+    <span class="badge" style="background:#1a1a2e;color:#58a6ff">
+      <i class="bi bi-hdd-network me-1"></i>{{ current_user.username }}@web
+    </span>
+    <span class="badge" style="background:#1a1a1a;color:#888" id="term-size">80×24</span>
+  </div>
 </div>
 
 <div class="mt-3 row g-3">
-  <div class="col-md-6">
-    <div class="card bg-dark border-secondary">
-      <div class="card-header py-2 border-secondary">
-        <span class="small text-secondary"><i class="bi bi-info-circle me-1"></i>Quick Commands</span>
+  <div class="col-lg-4">
+    <div class="card kali-info-card">
+      <div class="card-header py-2">
+        <span class="kali-section-title"><i class="bi bi-terminal me-1"></i>Quick Commands</span>
       </div>
       <div class="card-body py-2">
-        <div class="d-flex flex-wrap gap-2">
+        <div class="d-flex flex-wrap gap-1">
           {% for cmd in [
-            ('python3', 'python3'),
             ('ls -la', 'ls -la'),
-            ('pip list', 'pip list'),
-            ('python3 --version', 'python3 --version'),
             ('pwd', 'pwd'),
             ('whoami', 'whoami'),
+            ('id', 'id'),
             ('uname -a', 'uname -a'),
+            ('cat /etc/os-release', 'cat /etc/os-release'),
+            ('ps aux', 'ps aux'),
             ('df -h', 'df -h'),
             ('free -h', 'free -h'),
-            ('pip install', 'pip install '),
+            ('env', 'env'),
+            ('history', 'history'),
+            ('date', 'date'),
           ] %}
-          <button class="btn btn-outline-secondary btn-sm quick-cmd font-monospace" data-cmd="{{ cmd[1] }}">
-            {{ cmd[0] }}
-          </button>
+          <button class="btn btn-sm kali-cmd-btn quick-cmd" data-cmd="{{ cmd[1] }}">{{ cmd[0] }}</button>
           {% endfor %}
         </div>
       </div>
     </div>
   </div>
-  <div class="col-md-6">
-    <div class="card bg-dark border-secondary">
-      <div class="card-header py-2 border-secondary">
-        <span class="small text-secondary"><i class="bi bi-lightbulb me-1"></i>Tips</span>
+  <div class="col-lg-4">
+    <div class="card kali-info-card">
+      <div class="card-header py-2">
+        <span class="kali-section-title"><i class="bi bi-code-slash me-1"></i>Python</span>
       </div>
-      <div class="card-body py-2 small text-secondary">
+      <div class="card-body py-2">
+        <div class="d-flex flex-wrap gap-1">
+          {% for cmd in [
+            ('python3', 'python3'),
+            ('python3 --version', 'python3 --version'),
+            ('pip list', 'pip list'),
+            ('pip install ', 'pip install '),
+            ('pip3 --version', 'pip3 --version'),
+          ] %}
+          <button class="btn btn-sm kali-cmd-btn quick-cmd" data-cmd="{{ cmd[1] }}">{{ cmd[0] }}</button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card kali-info-card">
+      <div class="card-header py-2">
+        <span class="kali-section-title"><i class="bi bi-lightbulb me-1"></i>Tips</span>
+      </div>
+      <div class="card-body py-2 small" style="color:#5a8a5a">
         <ul class="mb-0 ps-3">
-          <li>Type <code>python3</code> to start an interactive Python shell</li>
-          <li>Use <code>pip install &lt;package&gt;</code> to install packages</li>
-          <li>Press <kbd>Ctrl+C</kbd> to cancel a running command</li>
+          <li>Type <code style="color:#3fb950">python3</code> for interactive Python</li>
+          <li>Use <code style="color:#3fb950">pip install &lt;pkg&gt;</code> to install packages</li>
+          <li>Press <kbd>Ctrl+C</kbd> to cancel a command</li>
           <li>Use <kbd>Tab</kbd> for autocomplete</li>
-          <li>Press <kbd>Ctrl+L</kbd> to clear the screen</li>
-          <li>Use <kbd>↑</kbd>/<kbd>↓</kbd> to navigate command history</li>
+          <li>Press <kbd>Ctrl+L</kbd> to clear screen</li>
+          <li><kbd>↑</kbd>/<kbd>↓</kbd> to navigate history</li>
         </ul>
       </div>
     </div>
@@ -110,26 +191,39 @@
 (function() {
   'use strict';
 
+  /* ── Kali Linux xterm theme ───────────────────────────────── */
   const term = new Terminal({
     fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace",
     fontSize: 14,
-    lineHeight: 1.4,
+    lineHeight: 1.35,
     cursorBlink: true,
     cursorStyle: 'block',
     theme: {
-      background: '#0d1117',
-      foreground: '#c9d1d9',
-      cursor: '#e6edf3',
-      selectionBackground: '#264f78',
-      black: '#0d1117', red: '#f85149', green: '#3fb950',
-      yellow: '#d29922', blue: '#58a6ff', magenta: '#bc8cff',
-      cyan: '#39c5cf', white: '#b1bac4',
-      brightBlack: '#6e7681', brightRed: '#ff7b72', brightGreen: '#56d364',
-      brightYellow: '#e3b341', brightBlue: '#79c0ff', brightMagenta: '#d2a8ff',
-      brightCyan: '#56d4dd', brightWhite: '#f0f6fc',
+      background: '#000000',
+      foreground: '#00ff41',
+      cursor: '#00ff41',
+      cursorAccent: '#000000',
+      selectionBackground: '#1a3a1a',
+      selectionForeground: '#00ff41',
+      black:   '#000000',
+      red:     '#ff5555',
+      green:   '#3fb950',
+      yellow:  '#f1fa8c',
+      blue:    '#6272a4',
+      magenta: '#ff79c6',
+      cyan:    '#8be9fd',
+      white:   '#bfbfbf',
+      brightBlack:   '#555555',
+      brightRed:     '#ff6e6e',
+      brightGreen:   '#56d364',
+      brightYellow:  '#ffffa5',
+      brightBlue:    '#79c0ff',
+      brightMagenta: '#ff92df',
+      brightCyan:    '#a4ffff',
+      brightWhite:   '#ffffff',
     },
     allowProposedApi: true,
-    scrollback: 3000,
+    scrollback: 5000,
   });
 
   const fitAddon = new FitAddon.FitAddon();
@@ -138,23 +232,25 @@
   fitAddon.fit();
 
   const statusEl = document.getElementById('term-status');
+  const sizeEl   = document.getElementById('term-size');
 
   function setStatus(text, cls) {
     statusEl.textContent = text;
-    statusEl.className = `badge ${cls}`;
+    statusEl.className = 'badge ' + cls;
   }
 
+  /* ── SocketIO connection ─────────────────────────────────── */
   let socket;
   function connect() {
     setStatus('Connecting…', 'bg-secondary');
-    socket = io('/terminal', { transports: ['websocket'] });
+    socket = io('/terminal', { transports: ['websocket', 'polling'] });
 
-    socket.on('connect', () => {
+    socket.on('connect', function() {
       setStatus('Connected', 'bg-success');
       term.focus();
     });
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', function() {
       setStatus('Disconnected', 'bg-danger');
     });
 
@@ -162,9 +258,9 @@
       term.write(data.data);
     });
 
-    socket.on('connect_error', (err) => {
+    socket.on('connect_error', function(err) {
       setStatus('Error', 'bg-danger');
-      term.write(`\r\n\x1b[31mConnection error: ${err.message}\x1b[0m\r\n`);
+      term.write('\r\n\x1b[31mConnection error: ' + err.message + '\x1b[0m\r\n');
     });
   }
 
@@ -178,6 +274,9 @@
 
   function sendResize() {
     fitAddon.fit();
+    if (sizeEl) {
+      sizeEl.textContent = term.cols + '×' + term.rows;
+    }
     if (socket && socket.connected) {
       socket.emit('terminal_resize', { rows: term.rows, cols: term.cols });
     }
@@ -185,9 +284,10 @@
 
   window.addEventListener('resize', sendResize);
 
-  document.querySelectorAll('.quick-cmd').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const cmd = btn.dataset.cmd;
+  /* ── Quick command buttons ───────────────────────────────── */
+  document.querySelectorAll('.quick-cmd').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var cmd = btn.dataset.cmd;
       if (socket && socket.connected) {
         socket.emit('terminal_input', { data: cmd + (cmd.endsWith(' ') ? '' : '\n') });
         term.focus();
@@ -195,12 +295,12 @@
     });
   });
 
-  document.getElementById('clear-term-btn').addEventListener('click', () => {
+  document.getElementById('clear-term-btn').addEventListener('click', function() {
     term.clear();
     term.focus();
   });
 
-  document.getElementById('reconnect-btn').addEventListener('click', () => {
+  document.getElementById('reconnect-btn').addEventListener('click', function() {
     if (socket) socket.disconnect();
     term.write('\r\n\x1b[33m[Reconnecting…]\x1b[0m\r\n');
     setTimeout(connect, 500);

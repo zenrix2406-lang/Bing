@@ -171,7 +171,10 @@
 
     // Show interactive input area
     if (interactiveInput) interactiveInput.classList.remove('d-none');
-    if (codeStdin) { codeStdin.value = ''; codeStdin.focus(); }
+    if (codeStdin) {
+      codeStdin.value = '';
+      codeStdin.focus();
+    }
 
     socket.emit('run_code', { code: code });
 
@@ -346,7 +349,11 @@
   });
 
   if (clearOutBtn) clearOutBtn.addEventListener('click', () => {
-    if (codeRunning) { socket.emit('stop_code'); codeRunning = false; setRunning(false); }
+    if (codeRunning) {
+      socket.emit('stop_code');
+      codeRunning = false;
+      setRunning(false);
+    }
     outputEl.textContent = '';
     outputEl.classList.remove('has-error');
     if (exitBadge) exitBadge.classList.add('d-none');

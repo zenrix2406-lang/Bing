@@ -243,7 +243,7 @@
   let socket;
   function connect() {
     setStatus('Connecting…', 'bg-secondary');
-    socket = io('/terminal', { transports: ['websocket'] });
+    socket = io('/terminal', { transports: ['websocket', 'polling'] });
 
     socket.on('connect', function() {
       setStatus('Connected', 'bg-success');

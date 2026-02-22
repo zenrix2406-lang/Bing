@@ -40,9 +40,9 @@ def create_app():
     login_manager.login_message_category = 'warning'
 
     # SocketIO — use threading mode (stable; works without eventlet)
-    allowed_origins = os.environ.get('CORS_ALLOWED_ORIGINS', None)
+    allowed_origins = os.environ.get('CORS_ALLOWED_ORIGINS', '*')
     socketio.init_app(app, async_mode='threading',
-                      cors_allowed_origins=allowed_origins or ['http://localhost:5000'],
+                      cors_allowed_origins=allowed_origins,
                       logger=False, engineio_logger=False)
 
     from .auth import auth_bp

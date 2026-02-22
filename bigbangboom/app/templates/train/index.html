@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Training AI — BigBangBoom{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+      <div>
+        <h3 class="fw-bold mb-1"><i class="bi bi-brain me-2 bbb-text-glow"></i>Training AI</h3>
+        <p class="text-secondary mb-0 small">
+          Write plain-English prompts to shape BigBangBoom AI's behaviour. Active prompts are
+          automatically injected into every conversation.
+        </p>
+      </div>
+      <a href="{{ url_for('train.new_prompt') }}" class="btn bbb-btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>New Training Prompt
+      </a>
+    </div>
+
+    <!-- Prompt list -->
+    {% if prompts %}
+    <div class="row g-3">
+      {% for p in prompts %}
+      <div class="col-md-6 col-xl-4">
+        <div class="bbb-prompt-card h-100 {% if p.is_active %}bbb-prompt-active{% endif %}">
+          <div class="d-flex align-items-start justify-content-between mb-2">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              {% if p.is_active %}
+                <span class="bbb-badge-active"><i class="bi bi-check-circle-fill me-1"></i>Active</span>
+              {% else %}
+                <span class="bbb-badge-inactive"><i class="bi bi-pause-circle me-1"></i>Inactive</span>
+              {% endif %}
+              <h6 class="fw-semibold mb-0">{{ p.title }}</h6>
+            </div>
+          </div>
+          <p class="text-secondary small mb-3" style="line-height:1.55;">
+            {{ p.content | truncate(180, True) }}
+          </p>
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-auto">
+            <span class="text-secondary" style="font-size:.72rem;">
+              <i class="bi bi-clock me-1"></i>{{ p.updated_at.strftime('%b %d, %Y') }}
+            </span>
+            <div class="d-flex gap-1">
+              <!-- Toggle active -->
+              <form method="POST" action="{{ url_for('train.toggle_prompt', prompt_id=p.id) }}" class="d-inline">
+                <button type="submit"
+                        class="btn btn-xs {% if p.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                        title="{% if p.is_active %}Deactivate{% else %}Activate{% endif %}">
+                  <i class="bi {% if p.is_active %}bi-pause-fill{% else %}bi-play-fill{% endif %}"></i>
+                </button>
+              </form>
+              <!-- Edit -->
+              <a href="{{ url_for('train.edit_prompt', prompt_id=p.id) }}"
+                 class="btn btn-xs btn-outline-info" title="Edit">
+                <i class="bi bi-pencil-fill"></i>
+              </a>
+              <!-- Delete -->
+              <form method="POST" action="{{ url_for('train.delete_prompt', prompt_id=p.id) }}"
+                    onsubmit="return confirm('Delete this training prompt?');" class="d-inline">
+                <button type="submit" class="btn btn-xs btn-outline-danger" title="Delete">
+                  <i class="bi bi-trash3-fill"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="bbb-empty-state text-center py-5">
+      <i class="bi bi-brain display-4 d-block mb-3 text-secondary"></i>
+      <h5 class="fw-semibold mb-2">No training prompts yet</h5>
+      <p class="text-secondary mb-4">
+        Write your first prompt to start shaping BigBangBoom AI's personality and expertise.
+      </p>
+      <a href="{{ url_for('train.new_prompt') }}" class="btn bbb-btn-primary px-4">
+        <i class="bi bi-plus-lg me-1"></i>Write First Prompt
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

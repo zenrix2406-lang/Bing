@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}BigBangBoom AI — Your Unrestricted Personal Assistant{% endblock %}
+
+{% block content %}
+<!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+<section class="bbb-hero py-5">
+  <div class="container py-4">
+    <div class="row align-items-center gy-5">
+      <div class="col-lg-6">
+        <div class="bbb-hero-badge mb-3">
+          <span class="bbb-pulse-dot"></span> Live &amp; Ready
+        </div>
+        <h1 class="bbb-hero-title mb-3">
+          Meet <span class="bbb-text-glow">BigBangBoom AI</span> —<br>
+          Your AI That Never Says No
+        </h1>
+        <p class="bbb-hero-sub mb-4">
+          A fully customisable AI assistant you train with your own prompts.
+          Two AI engines working together: a <strong>Training AI</strong> to shape the personality,
+          and the <strong>BigBangBoom AI</strong> to execute every single request — deeply, accurately, completely.
+        </p>
+        {% if current_user.is_authenticated %}
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{{ url_for('bbb.index') }}" class="btn bbb-btn-primary btn-lg px-4">
+            <i class="bi bi-robot me-2"></i>Open BigBangBoom AI
+          </a>
+          <a href="{{ url_for('train.index') }}" class="btn bbb-btn-secondary btn-lg px-4">
+            <i class="bi bi-brain me-2"></i>Training AI
+          </a>
+        </div>
+        {% else %}
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{{ url_for('auth.register') }}" class="btn bbb-btn-primary btn-lg px-4">
+            <i class="bi bi-lightning-charge-fill me-2"></i>Get Started Free
+          </a>
+          <a href="{{ url_for('auth.login') }}" class="btn bbb-btn-secondary btn-lg px-4">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Login
+          </a>
+        </div>
+        {% endif %}
+      </div>
+      <div class="col-lg-6">
+        <div class="bbb-demo-card">
+          <div class="bbb-demo-bar">
+            <span class="bbb-dot bbb-dot-r"></span>
+            <span class="bbb-dot bbb-dot-y"></span>
+            <span class="bbb-dot bbb-dot-g"></span>
+            <span class="ms-3 small text-secondary font-monospace">BigBangBoom AI</span>
+          </div>
+          <div class="p-4">
+            <div class="bbb-demo-msg bbb-demo-user">
+              Build me a full REST API with authentication in Python 🐍
+            </div>
+            <div class="bbb-demo-msg bbb-demo-bot mt-3">
+              <div class="d-flex align-items-center mb-2">
+                <span class="bbb-demo-bot-avatar me-2">💥</span>
+                <strong class="bbb-text-glow">BigBangBoom AI</strong>
+              </div>
+              Absolutely! Here's a complete Flask REST API with JWT authentication,
+              user registration, login, protected routes, SQLAlchemy ORM, and Swagger docs…
+              <br><br>
+              <code class="bbb-demo-code">from flask import Flask, jsonify<br>from flask_jwt_extended import JWTManager<br># ... (full implementation below)</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ──────────────────────────────────────────────────────── -->
+<section class="py-5 bbb-section-alt">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold bbb-section-title">How It Works</h2>
+      <p class="text-secondary">Two AIs. One goal: serve you perfectly.</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-5">
+        <div class="bbb-feature-card h-100">
+          <div class="bbb-feature-icon bbb-icon-train mb-3">
+            <i class="bi bi-brain fs-3"></i>
+          </div>
+          <h4 class="fw-semibold mb-2">🧠 Training AI</h4>
+          <p class="text-secondary mb-3">
+            Write prompts in plain English to define exactly how BigBangBoom AI should behave —
+            its tone, expertise, constraints, and special abilities.
+            No coding required. Activate or deactivate prompts at any time.
+          </p>
+          <ul class="bbb-feature-list">
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Write plain-text instructions</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Enable / disable on the fly</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Stack multiple prompts</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Instant effect on BigBangBoom AI</li>
+          </ul>
+          {% if current_user.is_authenticated %}
+          <a href="{{ url_for('train.index') }}" class="btn bbb-btn-secondary mt-3">
+            <i class="bi bi-plus-lg me-1"></i>Manage Training Prompts
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div class="bbb-feature-card h-100 bbb-feature-card-glow">
+          <div class="bbb-feature-icon bbb-icon-bbb mb-3">
+            <i class="bi bi-robot fs-3"></i>
+          </div>
+          <h4 class="fw-semibold mb-2">💥 BigBangBoom AI</h4>
+          <p class="text-secondary mb-3">
+            The main assistant, powered by your chosen provider (OpenAI, Groq, Mistral, Anthropic, Google).
+            It absorbs all your training prompts and replies with perfect, thorough answers —
+            no excuses, no refusals, ever.
+          </p>
+          <ul class="bbb-feature-list">
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Fulfils every request completely</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Deep, accurate, detailed answers</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>Trained by YOUR prompts</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i>5 AI providers supported</li>
+          </ul>
+          {% if current_user.is_authenticated %}
+          <a href="{{ url_for('bbb.index') }}" class="btn bbb-btn-primary mt-3">
+            <i class="bi bi-chat-dots-fill me-1"></i>Start Chatting
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Providers ──────────────────────────────────────────────────────────── -->
+<section class="py-5">
+  <div class="container">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold bbb-section-title">Powered by the World's Best AI</h2>
+      <p class="text-secondary">Bring your own API key. Switch any time.</p>
+    </div>
+    <div class="row g-3 justify-content-center">
+      {% for name, icon, color in [
+          ('OpenAI GPT-4o',        'bi-lightning-charge-fill', '#10a37f'),
+          ('Groq LLaMA 3.3',       'bi-cpu-fill',              '#f55036'),
+          ('Mistral Large',        'bi-wind',                  '#ff7000'),
+          ('Anthropic Claude 3.5', 'bi-cloud-fill',            '#d4a017'),
+          ('Google Gemini 1.5',    'bi-google',                '#4285f4'),
+      ] %}
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="bbb-provider-card text-center p-3">
+          <i class="bi {{ icon }} fs-2 mb-2 d-block" style="color:{{ color }}"></i>
+          <span class="small fw-medium">{{ name }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if not current_user.is_authenticated %}
+<!-- ── CTA ────────────────────────────────────────────────────────────────── -->
+<section class="py-5 bbb-section-alt">
+  <div class="container text-center">
+    <h2 class="fw-bold mb-3 bbb-section-title">Ready to build your perfect AI?</h2>
+    <p class="text-secondary mb-4">Sign up for free and start training BigBangBoom AI right now.</p>
+    <a href="{{ url_for('auth.register') }}" class="btn bbb-btn-primary btn-lg px-5">
+      <i class="bi bi-rocket-takeoff-fill me-2"></i>Create Free Account
+    </a>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

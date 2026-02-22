@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Terminal — PyHost{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+<style>
+.terminal-container {
+  background: #0d1117;
+  border-radius: 0.5rem;
+  border: 1px solid #30363d;
+  overflow: hidden;
+}
+.terminal-titlebar {
+  background: #161b22;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #30363d;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.dot { width:12px; height:12px; border-radius:50%; display:inline-block; }
+.dot-red   { background:#ff5f57; }
+.dot-yellow{ background:#febc2e; }
+.dot-green { background:#28c840; }
+#terminal { padding: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block main_class %}container-fluid py-3{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-terminal-fill me-2 text-warning"></i>Interactive Terminal
+  </h4>
+  <div class="d-flex gap-2">
+    <span id="term-status" class="badge bg-secondary">Connecting…</span>
+    <button id="clear-term-btn" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-eraser me-1"></i>Clear
+    </button>
+    <button id="reconnect-btn" class="btn btn-outline-warning btn-sm">
+      <i class="bi bi-arrow-clockwise me-1"></i>Reconnect
+    </button>
+  </div>
+</div>
+
+<div class="terminal-container">
+  <div class="terminal-titlebar">
+    <span class="dot dot-red"></span>
+    <span class="dot dot-yellow"></span>
+    <span class="dot dot-green"></span>
+    <span class="text-secondary small ms-2 font-monospace">bash — PyHost Terminal</span>
+  </div>
+  <div id="terminal"></div>
+</div>
+
+<div class="mt-3 row g-3">
+  <div class="col-md-6">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header py-2 border-secondary">
+        <span class="small text-secondary"><i class="bi bi-info-circle me-1"></i>Quick Commands</span>
+      </div>
+      <div class="card-body py-2">
+        <div class="d-flex flex-wrap gap-2">
+          {% for cmd in [
+            ('python3', 'python3'),
+            ('ls -la', 'ls -la'),
+            ('pip list', 'pip list'),
+            ('python3 --version', 'python3 --version'),
+            ('pwd', 'pwd'),
+            ('whoami', 'whoami'),
+            ('uname -a', 'uname -a'),
+            ('df -h', 'df -h'),
+            ('free -h', 'free -h'),
+            ('pip install', 'pip install '),
+          ] %}
+          <button class="btn btn-outline-secondary btn-sm quick-cmd font-monospace" data-cmd="{{ cmd[1] }}">
+            {{ cmd[0] }}
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card bg-dark border-secondary">
+      <div class="card-header py-2 border-secondary">
+        <span class="small text-secondary"><i class="bi bi-lightbulb me-1"></i>Tips</span>
+      </div>
+      <div class="card-body py-2 small text-secondary">
+        <ul class="mb-0 ps-3">
+          <li>Type <code>python3</code> to start an interactive Python shell</li>
+          <li>Use <code>pip install &lt;package&gt;</code> to install packages</li>
+          <li>Press <kbd>Ctrl+C</kbd> to cancel a running command</li>
+          <li>Use <kbd>Tab</kbd> for autocomplete</li>
+          <li>Press <kbd>Ctrl+L</kbd> to clear the screen</li>
+          <li>Use <kbd>↑</kbd>/<kbd>↓</kbd> to navigate command history</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io@4.7.4/dist/socket.io.min.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  const term = new Terminal({
+    fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace",
+    fontSize: 14,
+    lineHeight: 1.4,
+    cursorBlink: true,
+    cursorStyle: 'block',
+    theme: {
+      background: '#0d1117',
+      foreground: '#c9d1d9',
+      cursor: '#e6edf3',
+      selectionBackground: '#264f78',
+      black: '#0d1117', red: '#f85149', green: '#3fb950',
+      yellow: '#d29922', blue: '#58a6ff', magenta: '#bc8cff',
+      cyan: '#39c5cf', white: '#b1bac4',
+      brightBlack: '#6e7681', brightRed: '#ff7b72', brightGreen: '#56d364',
+      brightYellow: '#e3b341', brightBlue: '#79c0ff', brightMagenta: '#d2a8ff',
+      brightCyan: '#56d4dd', brightWhite: '#f0f6fc',
+    },
+    allowProposedApi: true,
+    scrollback: 3000,
+  });
+
+  const fitAddon = new FitAddon.FitAddon();
+  term.loadAddon(fitAddon);
+  term.open(document.getElementById('terminal'));
+  fitAddon.fit();
+
+  const statusEl = document.getElementById('term-status');
+
+  function setStatus(text, cls) {
+    statusEl.textContent = text;
+    statusEl.className = `badge ${cls}`;
+  }
+
+  let socket;
+  function connect() {
+    setStatus('Connecting…', 'bg-secondary');
+    socket = io('/terminal', { transports: ['websocket'] });
+
+    socket.on('connect', () => {
+      setStatus('Connected', 'bg-success');
+      term.focus();
+    });
+
+    socket.on('disconnect', () => {
+      setStatus('Disconnected', 'bg-danger');
+    });
+
+    socket.on('terminal_output', function(data) {
+      term.write(data.data);
+    });
+
+    socket.on('connect_error', (err) => {
+      setStatus('Error', 'bg-danger');
+      term.write(`\r\n\x1b[31mConnection error: ${err.message}\x1b[0m\r\n`);
+    });
+  }
+
+  connect();
+
+  term.onData(function(data) {
+    if (socket && socket.connected) {
+      socket.emit('terminal_input', { data: data });
+    }
+  });
+
+  function sendResize() {
+    fitAddon.fit();
+    if (socket && socket.connected) {
+      socket.emit('terminal_resize', { rows: term.rows, cols: term.cols });
+    }
+  }
+
+  window.addEventListener('resize', sendResize);
+
+  document.querySelectorAll('.quick-cmd').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cmd = btn.dataset.cmd;
+      if (socket && socket.connected) {
+        socket.emit('terminal_input', { data: cmd + (cmd.endsWith(' ') ? '' : '\n') });
+        term.focus();
+      }
+    });
+  });
+
+  document.getElementById('clear-term-btn').addEventListener('click', () => {
+    term.clear();
+    term.focus();
+  });
+
+  document.getElementById('reconnect-btn').addEventListener('click', () => {
+    if (socket) socket.disconnect();
+    term.write('\r\n\x1b[33m[Reconnecting…]\x1b[0m\r\n');
+    setTimeout(connect, 500);
+  });
+
+  setTimeout(sendResize, 100);
+})();
+</script>
+{% endblock %}

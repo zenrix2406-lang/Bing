@@ -20,6 +20,10 @@ class User(db.Model, UserMixin):
 
     files = db.relationship('HostedFile', backref='owner', lazy=True, cascade='all, delete-orphan')
     chat_sessions = db.relationship('ChatSession', backref='owner', lazy=True, cascade='all, delete-orphan')
+    snippets = db.relationship('CodeSnippet', backref='owner', lazy=True, cascade='all, delete-orphan',
+                               foreign_keys='CodeSnippet.user_id')
+    run_history = db.relationship('RunHistory', backref='owner', lazy=True, cascade='all, delete-orphan',
+                                  foreign_keys='RunHistory.user_id')
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -82,3 +86,34 @@ class ChatMessage(db.Model):
 
     def __repr__(self):
         return f'<ChatMessage {self.role} in session {self.session_id}>'
+
+
+class CodeSnippet(db.Model):
+    __tablename__ = 'code_snippets'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(120), nullable=False)
+    code = db.Column(db.Text, nullable=False)
+    language = db.Column(db.String(32), default='python')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<CodeSnippet {self.title}>'
+
+
+class RunHistory(db.Model):
+    __tablename__ = 'run_history'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    code = db.Column(db.Text, nullable=False)
+    stdin = db.Column(db.Text, nullable=True)
+    stdout = db.Column(db.Text, nullable=True)
+    stderr = db.Column(db.Text, nullable=True)
+    exit_code = db.Column(db.Integer, nullable=True)
+    ran_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<RunHistory {self.id}>'

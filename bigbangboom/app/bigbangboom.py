@@ -196,9 +196,6 @@ def send_message(session_id):
     history += [{'role': m.role, 'content': m.content}
                 for m in chat_session.messages]
 
-    if not chat_session.title:
-        chat_session.title = user_text[:100]
-
     caller = CALLERS[provider['id']]
     error_response = None
     try:
@@ -218,6 +215,9 @@ def send_message(session_id):
         db.session.delete(user_msg)
         db.session.commit()
         return error_response
+
+    if not chat_session.title:
+        chat_session.title = user_text[:100]
 
     assistant_msg = BBBMessage(
         session_id=chat_session.id,

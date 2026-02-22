@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — PyHost{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fw-bold mb-0">
+    <i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard
+  </h2>
+  <span class="text-secondary">Welcome back, <strong class="text-white">{{ current_user.username }}</strong>!</span>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="text-primary fs-1 fw-bold">{{ file_count }}</div>
+      <div class="text-secondary small">Hosted Files</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="text-info fs-1 fw-bold">{{ session_count }}</div>
+      <div class="text-secondary small">AI Chat Sessions</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="text-success fs-1 fw-bold">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <div class="text-secondary small">Account Active</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card bg-dark border-secondary text-center p-3">
+      <div class="text-warning fs-1 fw-bold">
+        {% set keys = [current_user.openai_key, current_user.anthropic_key,
+                       current_user.google_key, current_user.groq_key, current_user.mistral_key] %}
+        {{ keys | select | list | length }}
+      </div>
+      <div class="text-secondary small">AI Keys Configured</div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<h5 class="fw-semibold mb-3">Quick Actions</h5>
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <a href="{{ url_for('editor.index') }}" class="btn btn-outline-success w-100 py-3">
+      <i class="bi bi-code-slash d-block fs-3 mb-1"></i>
+      Run Python Code
+    </a>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <a href="{{ url_for('hosting.index') }}" class="btn btn-outline-warning w-100 py-3">
+      <i class="bi bi-cloud-upload d-block fs-3 mb-1"></i>
+      Upload Files
+    </a>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <a href="{{ url_for('ai.index') }}" class="btn btn-outline-info w-100 py-3">
+      <i class="bi bi-robot d-block fs-3 mb-1"></i>
+      Chat with AI
+    </a>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <a href="{{ url_for('profile.index') }}" class="btn btn-outline-secondary w-100 py-3">
+      <i class="bi bi-gear d-block fs-3 mb-1"></i>
+      Settings
+    </a>
+  </div>
+</div>
+
+{% if not (current_user.openai_key or current_user.anthropic_key or
+           current_user.google_key or current_user.groq_key or current_user.mistral_key) %}
+<div class="alert alert-info d-flex align-items-center" role="alert">
+  <i class="bi bi-info-circle-fill me-2 flex-shrink-0"></i>
+  <div>
+    You haven't added any AI provider API keys yet.
+    <a href="{{ url_for('profile.index') }}" class="alert-link">Go to Profile &rarr; Settings</a>
+    to add them and unlock AI Chat.
+  </div>
+</div>
+{% endif %}
+{% endblock %}

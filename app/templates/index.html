@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}PyHost Platform — Code, Host & AI-Power Your Projects{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="px-4 py-5 my-4 text-center">
+  <div class="mb-3">
+    <i class="bi bi-cpu-fill display-3 text-primary"></i>
+  </div>
+  <h1 class="display-4 fw-bold text-white">PyHost Platform</h1>
+  <p class="col-lg-7 mx-auto lead text-secondary">
+    Code, Host, and AI-power your Python projects — all in one place.
+    Run Python code in the browser, host your files, and chat with the world's best AI models.
+  </p>
+  <div class="d-inline-flex gap-2 mt-3">
+    {% if current_user.is_authenticated %}
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg px-4">
+        <i class="bi bi-speedometer2 me-1"></i>Go to Dashboard
+      </a>
+    {% else %}
+      <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4">
+        <i class="bi bi-person-plus-fill me-1"></i>Get Started Free
+      </a>
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg px-4">
+        <i class="bi bi-box-arrow-in-right me-1"></i>Log In
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Features -->
+<div class="container py-4">
+  <div class="row g-4 text-center">
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 border-secondary bg-dark feature-card">
+        <div class="card-body p-4">
+          <div class="feature-icon mb-3">
+            <i class="bi bi-code-slash fs-1 text-success"></i>
+          </div>
+          <h5 class="card-title fw-semibold">🐍 Python Runner</h5>
+          <p class="card-text text-secondary">
+            Write and execute Python code directly in your browser with a
+            syntax-highlighted CodeMirror editor. See stdout/stderr instantly.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 border-secondary bg-dark feature-card">
+        <div class="card-body p-4">
+          <div class="feature-icon mb-3">
+            <i class="bi bi-folder-fill fs-1 text-warning"></i>
+          </div>
+          <h5 class="card-title fw-semibold">📁 File Hosting</h5>
+          <p class="card-text text-secondary">
+            Upload, manage and share your files with a clean dashboard.
+            Up to 50 MB per file — always private to your account.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 border-secondary bg-dark feature-card">
+        <div class="card-body p-4">
+          <div class="feature-icon mb-3">
+            <i class="bi bi-robot fs-1 text-info"></i>
+          </div>
+          <h5 class="card-title fw-semibold">🤖 AI Models</h5>
+          <p class="card-text text-secondary">
+            Chat with GPT-4o, Claude 3.5 Sonnet, Gemini 1.5 Pro, LLaMA 3.3, and Mistral
+            using your own API keys — no middleman markup.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 border-secondary bg-dark feature-card">
+        <div class="card-body p-4">
+          <div class="feature-icon mb-3">
+            <i class="bi bi-shield-lock-fill fs-1 text-danger"></i>
+          </div>
+          <h5 class="card-title fw-semibold">🔐 Secure Auth</h5>
+          <p class="card-text text-secondary">
+            Accounts protected with Werkzeug's PBKDF2-SHA256 password hashing.
+            Your files and API keys are isolated per user.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- How it works -->
+<div class="container py-4">
+  <h2 class="text-center fw-bold mb-4">How It Works</h2>
+  <div class="row g-3 align-items-center">
+    <div class="col-md-4 text-center">
+      <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center mb-2"
+           style="width:56px;height:56px;">
+        <span class="fw-bold fs-4">1</span>
+      </div>
+      <h6 class="fw-semibold">Create an Account</h6>
+      <p class="text-secondary small">Register in seconds with username, email and password.</p>
+    </div>
+    <div class="col-md-4 text-center">
+      <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center mb-2"
+           style="width:56px;height:56px;">
+        <span class="fw-bold fs-4">2</span>
+      </div>
+      <h6 class="fw-semibold">Add Your API Keys</h6>
+      <p class="text-secondary small">Paste your AI provider keys in Profile &rarr; Settings.</p>
+    </div>
+    <div class="col-md-4 text-center">
+      <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center mb-2"
+           style="width:56px;height:56px;">
+        <span class="fw-bold fs-4">3</span>
+      </div>
+      <h6 class="fw-semibold">Build &amp; Explore</h6>
+      <p class="text-secondary small">Run code, host files, and have AI-powered conversations.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

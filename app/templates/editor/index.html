@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Python Code Editor — PyHost{% endblock %}
+
+{% block extra_head %}
+<!-- CodeMirror 5 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/theme/dracula.min.css" />
+{% endblock %}
+
+{% block main_class %}container-fluid py-3{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-code-slash me-2 text-success"></i>Python Code Editor
+  </h4>
+  <div class="d-flex gap-2 align-items-center">
+    <span class="badge bg-secondary">Python 3</span>
+    <span id="run-status" class="text-secondary small"></span>
+    <button id="run-btn" class="btn btn-success btn-sm px-3">
+      <i class="bi bi-play-fill me-1"></i>Run
+    </button>
+    <button id="clear-btn" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-trash me-1"></i>Clear
+    </button>
+  </div>
+</div>
+
+<div class="row g-3 editor-layout">
+  <!-- Left: Editor pane -->
+  <div class="col-lg-7">
+    <div class="card bg-dark border-secondary h-100">
+      <div class="card-header d-flex align-items-center justify-content-between py-2 border-secondary">
+        <span class="small text-secondary">
+          <i class="bi bi-file-earmark-code me-1"></i>main.py
+        </span>
+        <div class="d-flex gap-2">
+          <button id="copy-btn" class="btn btn-outline-secondary btn-sm py-0 px-2" title="Copy code">
+            <i class="bi bi-clipboard"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <textarea id="code">print("Hello, PyHost!")
+
+# Try something more interesting:
+import math
+
+def fibonacci(n):
+    a, b = 0, 1
+    for _ in range(n):
+        print(a, end=' ')
+        a, b = b, a + b
+    print()
+
+fibonacci(10)
+print(f"Pi = {math.pi:.4f}")
+</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Output + stdin pane -->
+  <div class="col-lg-5">
+    <div class="d-flex flex-column gap-3 h-100">
+      <!-- stdin -->
+      <div class="card bg-dark border-secondary">
+        <div class="card-header py-2 border-secondary">
+          <span class="small text-secondary">
+            <i class="bi bi-terminal me-1"></i>Standard Input (stdin)
+          </span>
+        </div>
+        <div class="card-body p-0">
+          <textarea id="stdin" class="form-control bg-dark border-0 text-white font-monospace stdin-area"
+                    placeholder="Optional: enter input for your program here…" rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- Output -->
+      <div class="card bg-dark border-secondary flex-grow-1">
+        <div class="card-header d-flex align-items-center justify-content-between py-2 border-secondary">
+          <span class="small text-secondary">
+            <i class="bi bi-terminal-fill me-1"></i>Output
+          </span>
+          <div class="d-flex gap-2 align-items-center">
+            <span id="exit-badge" class="badge d-none"></span>
+            <button id="clear-output-btn" class="btn btn-outline-secondary btn-sm py-0 px-2" title="Clear output">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <pre id="output" class="code-output m-0 p-3">Click <strong>Run</strong> to execute your code.</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/addon/selection/active-line.min.js"></script>
+<script src="{{ url_for('static', filename='js/editor.js') }}"></script>
+{% endblock %}

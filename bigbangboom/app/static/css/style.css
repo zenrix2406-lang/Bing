@@ -709,3 +709,14 @@ footer { flex-shrink: 0; }
   to   { opacity: 1; transform: translateY(0); }
 }
 .fade-in-up { animation: fadeInUp .4s ease both; }
+
+/* ── Streaming cursor ──────────────────────────────────────────── */
+.bbb-streaming::after {
+  content: '▍';
+  color: var(--accent-2);
+  animation: bbb-blink 1s step-end infinite;
+}
+@keyframes bbb-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Chat — Zalrik AI{% endblock %}
+{% block main_class %}container-fluid p-0{% endblock %}
+
+{% block content %}
+<div class="d-flex zalrik-chat-layout" style="height: calc(100vh - 58px);">
+
+  <!-- Sidebar -->
+  <aside class="zalrik-sidebar d-flex flex-column border-end border-secondary bg-dark"
+         style="width:260px; min-width:200px; max-width:300px;">
+
+    <div class="p-3 border-bottom border-secondary">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="zalrik-logo-icon fs-4">🤖</span>
+        <span class="fw-bold zalrik-gradient fs-5">Zalrik AI</span>
+      </div>
+
+      <div class="mb-2">
+        <div class="small text-secondary mb-1"><i class="bi bi-cpu-fill me-1 text-info"></i>Model</div>
+        <div class="text-truncate font-monospace" style="font-size:.72rem; color:#8be9fd;">{{ model }}</div>
+      </div>
+
+      <div class="mb-3">
+        <div class="small text-secondary mb-1"><i class="bi bi-mortarboard-fill me-1 text-warning"></i>Training prompts</div>
+        <span class="badge bg-warning text-dark">{{ training_prompts | length }}</span>
+        <a href="{{ url_for('train') }}" class="btn btn-sm btn-outline-warning ms-1 py-0 px-2">
+          Manage
+        </a>
+      </div>
+
+      <button id="clear-chat-btn" class="btn btn-sm btn-outline-secondary w-100">
+        <i class="bi bi-trash me-1"></i>Clear chat
+      </button>
+    </div>
+
+    <!-- Training prompts preview -->
+    <div class="overflow-auto flex-grow-1 p-2">
+      {% if training_prompts %}
+      <div class="small text-secondary mb-2 px-1">
+        <i class="bi bi-lightbulb-fill text-warning me-1"></i>What Zalrik knows:
+      </div>
+      {% for tp in training_prompts %}
+      <div class="mb-1 p-2 rounded bg-secondary bg-opacity-25 border border-secondary small text-truncate"
+           title="{{ tp }}">
+        {{ tp | truncate(55, True) }}
+      </div>
+      {% endfor %}
+      {% else %}
+      <p class="text-secondary small text-center mt-3">
+        <i class="bi bi-info-circle d-block mb-1 fs-5"></i>
+        No training prompts yet.<br>
+        <a href="{{ url_for('train') }}" class="text-warning">Teach Zalrik something!</a>
+      </p>
+      {% endif %}
+    </div>
+  </aside>
+
+  <!-- Main chat area -->
+  <div class="d-flex flex-column flex-grow-1 overflow-hidden">
+
+    <!-- Header -->
+    <div class="px-4 py-2 border-bottom border-secondary bg-dark d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <div class="zalrik-online-dot"></div>
+        <span class="fw-semibold text-white">Zalrik AI</span>
+        <span class="badge zalrik-badge-hf ms-1">Hugging Face</span>
+      </div>
+      <span class="text-secondary small font-monospace d-none d-md-block">{{ model | truncate(40, True) }}</span>
+    </div>
+
+    <!-- Messages -->
+    <div class="flex-grow-1 overflow-auto px-3 py-3" id="chat-messages">
+      {% if history %}
+        {% for msg in history %}
+        <div class="d-flex mb-3 {% if msg.role == 'user' %}justify-content-end{% else %}justify-content-start{% endif %}">
+          {% if msg.role == 'assistant' %}
+          <div class="me-2 flex-shrink-0">
+            <div class="zalrik-avatar-ai rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:34px;height:34px;font-size:1.1rem;">🤖</div>
+          </div>
+          {% endif %}
+          <div class="zalrik-bubble {% if msg.role == 'user' %}zalrik-bubble-user{% else %}zalrik-bubble-ai{% endif %}">
+            <div class="zalrik-msg-content">{{ msg.content }}</div>
+            {% if msg.ts %}
+            <div class="zalrik-msg-time">{{ msg.ts }}</div>
+            {% endif %}
+          </div>
+          {% if msg.role == 'user' %}
+          <div class="ms-2 flex-shrink-0">
+            <div class="zalrik-avatar-user rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:34px;height:34px;">
+              <i class="bi bi-person-fill text-white small"></i>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-center text-secondary mt-5" id="empty-state">
+          <div style="font-size:3.5rem;">🤖</div>
+          <h5 class="fw-semibold mt-2 mb-1 text-white">Hello! I'm Zalrik AI</h5>
+          <p class="small">I'm ready to help with anything you say.<br>
+            I <strong class="text-info">never say no</strong> — just tell me what to do!</p>
+          {% if training_prompts %}
+          <div class="alert alert-warning d-inline-block mt-2 text-start small" style="max-width:360px;">
+            <i class="bi bi-mortarboard-fill me-1"></i>
+            I've been taught <strong>{{ training_prompts | length }}</strong> custom instruction(s). I'll follow them all!
+          </div>
+          {% endif %}
+        </div>
+      {% endif %}
+      <div id="chat-bottom"></div>
+    </div>
+
+    <!-- Typing indicator -->
+    <div id="typing-indicator" class="px-4 pb-1 d-none">
+      <span class="text-secondary small">
+        <span class="zalrik-typing-dot"></span>
+        <span class="zalrik-typing-dot"></span>
+        <span class="zalrik-typing-dot"></span>
+        Zalrik is thinking…
+      </span>
+    </div>
+
+    <!-- Input area -->
+    <div class="border-top border-secondary p-3 bg-dark">
+      <div class="input-group">
+        <textarea id="message-input"
+                  class="form-control bg-secondary border-secondary text-white"
+                  placeholder="Tell Zalrik anything… (Enter to send, Shift+Enter for new line)"
+                  rows="2" style="resize:none;"></textarea>
+        <button id="send-btn" class="btn btn-primary px-4" type="button">
+          <span id="send-icon"><i class="bi bi-send-fill"></i></span>
+          <span id="send-spinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+        </button>
+      </div>
+      <div id="chat-error" class="text-danger small mt-1 d-none"></div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

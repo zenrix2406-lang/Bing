@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Setup — Zalrik AI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-2">
+  <div class="col-lg-6 col-md-8">
+
+    <!-- Hero -->
+    <div class="text-center mb-5">
+      <div class="zalrik-hero-icon mb-3">🤖</div>
+      <h1 class="fw-bold zalrik-gradient display-5">Zalrik AI</h1>
+      <p class="text-secondary fs-5">Your personal AI — powered by Hugging Face.<br>
+        Train it with prompts. It does <em>everything</em> you say.</p>
+    </div>
+
+    <!-- Setup card -->
+    <div class="card bg-dark border-secondary shadow-lg">
+      <div class="card-header border-secondary py-3">
+        <h5 class="mb-0 fw-semibold"><i class="bi bi-key-fill me-2 text-warning"></i>Connect Your Tokens</h5>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('index') }}">
+
+          <!-- HF Token -->
+          <div class="mb-4">
+            <label for="hf_token" class="form-label fw-semibold">
+              <i class="bi bi-hdd-network-fill me-1 text-info"></i>Hugging Face Token
+              <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+              <input type="password" id="hf_token" name="hf_token"
+                     class="form-control bg-secondary border-0 text-white font-monospace"
+                     placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                     autocomplete="off" required />
+              <button type="button" class="btn btn-secondary toggle-vis" data-target="hf_token">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            <div class="form-text text-secondary">
+              Get your free token at
+              <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener"
+                 class="text-info">huggingface.co/settings/tokens</a>
+            </div>
+          </div>
+
+          <!-- GitHub Token -->
+          <div class="mb-4">
+            <label for="github_token" class="form-label fw-semibold">
+              <i class="bi bi-github me-1 text-success"></i>GitHub Token
+              <span class="text-secondary small">(optional)</span>
+            </label>
+            <div class="input-group">
+              <input type="password" id="github_token" name="github_token"
+                     class="form-control bg-secondary border-0 text-white font-monospace"
+                     placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                     autocomplete="off" />
+              <button type="button" class="btn btn-secondary toggle-vis" data-target="github_token">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            <div class="form-text text-secondary">
+              Used by AI agents to interact with your GitHub repos.
+              Create one at
+              <a href="https://github.com/settings/tokens" target="_blank" rel="noopener"
+                 class="text-info">github.com/settings/tokens</a>
+            </div>
+          </div>
+
+          <!-- Model selector -->
+          <div class="mb-4">
+            <label for="hf_model" class="form-label fw-semibold">
+              <i class="bi bi-cpu-fill me-1 text-purple"></i>Hugging Face Model
+            </label>
+            <input type="text" id="hf_model" name="hf_model"
+                   class="form-control bg-secondary border-0 text-white font-monospace"
+                   value="{{ hf_model }}"
+                   placeholder="mistralai/Mistral-7B-Instruct-v0.3" />
+            <div class="form-text text-secondary">
+              Any chat model on the HF Hub, e.g.
+              <code class="text-info">mistralai/Mistral-7B-Instruct-v0.3</code>,
+              <code class="text-info">HuggingFaceH4/zephyr-7b-beta</code>,
+              <code class="text-info">meta-llama/Meta-Llama-3-8B-Instruct</code>
+            </div>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg fw-semibold">
+              <i class="bi bi-rocket-takeoff-fill me-2"></i>Launch Zalrik AI
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="row g-3 mt-4 text-center">
+      <div class="col-4">
+        <div class="p-3 rounded-3 bg-dark border border-secondary h-100">
+          <i class="bi bi-chat-dots-fill fs-2 text-info d-block mb-2"></i>
+          <div class="small fw-semibold">Chat</div>
+          <div class="text-secondary" style="font-size:.78rem;">Ask anything. Zalrik AI always helps.</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="p-3 rounded-3 bg-dark border border-secondary h-100">
+          <i class="bi bi-mortarboard-fill fs-2 text-warning d-block mb-2"></i>
+          <div class="small fw-semibold">Train</div>
+          <div class="text-secondary" style="font-size:.78rem;">Teach Zalrik with custom prompts.</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="p-3 rounded-3 bg-dark border border-secondary h-100">
+          <i class="bi bi-github fs-2 text-success d-block mb-2"></i>
+          <div class="small fw-semibold">Agents</div>
+          <div class="text-secondary" style="font-size:.78rem;">GitHub-powered AI tasks.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.querySelectorAll('.toggle-vis').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const inp = document.getElementById(this.dataset.target);
+      const icon = this.querySelector('i');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+      icon.className = inp.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+    });
+  });
+</script>
+{% endblock %}
